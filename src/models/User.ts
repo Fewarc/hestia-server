@@ -11,11 +11,11 @@ export class User extends BaseEntity {
   id!: number
 
   @Field(() => String)
-  @Column('varchar', { length: 20 })
+  @Column('varchar', { length: 20, nullable: true })
   login: string
 
   @Field(() => String)
-  @Column('varchar', { length: 20 })
+  @Column('varchar', { length: 20, nullable: true })
   password: string // TODO: hashed
 
   @Field()
@@ -23,23 +23,23 @@ export class User extends BaseEntity {
   role: UserRole
 
   @Field(() => String)
-  @Column('varchar', { length: 20 })
+  @Column('varchar', { length: 20, nullable: true })
   firstName: string
 
   @Field(() => String)
-  @Column('varchar', { length: 20 })
+  @Column('varchar', { length: 20, nullable: true })
   lastName: string
 
   @Field(() => String)
-  @Column('varchar', { length: 100 }) // TODO: check coordinates length
+  @Column('varchar', { length: 100, nullable: true }) // TODO: check coordinates length
   coordinates: string
   
   @Field(() => Int)
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   age: number
 
   @Field(() => String)
-  @Column('varchar', { length: 3 })
+  @Column('varchar', { length: 3, nullable: true })
   countryCode: string
 
   @Field(() => Int)
@@ -47,7 +47,7 @@ export class User extends BaseEntity {
   rating: number
 
   @Field(() => ID)
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   agencyId: number
 
   @Field()
