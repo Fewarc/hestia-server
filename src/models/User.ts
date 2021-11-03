@@ -19,6 +19,10 @@ export class User extends BaseEntity {
   login: string | null
 
   @Field(() => String, { nullable: true })
+  @Column('varchar', { length: 30, nullable: true })
+  email: string
+
+  @Field(() => String, { nullable: true })
   @Column('varchar', { length: 20, nullable: true })
   password: string // TODO: hashed
 
