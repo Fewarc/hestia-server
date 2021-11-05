@@ -10,6 +10,22 @@ export class UserResolver {
     return User.find();
   }
 
+  @Query(() => User)
+  async logInUser(
+    @Arg('login') login: string,
+    @Arg('password') password: string
+  ) {
+    const users = await User.find();
+
+    if(!users.some(user => user.login === login)) throw new ApolloError('user does not exist', 'USER_DOESNT_EXIST');
+
+    const user = await users.find(u => u.login === login);
+
+    if(user?.password !== password) throw new ApolloError('wrong password', 'WRONG_PASSWORD');
+
+    return user; 
+  }
+
   @Mutation(() => Boolean)
   async insertUser(
     @Arg('login') login: string, 
