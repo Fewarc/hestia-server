@@ -23,7 +23,7 @@ export class UserResolver {
 
     if(user?.password !== password) throw new ApolloError('wrong password', 'WRONG_PASSWORD');
 
-    return user; 
+    return user;
   }
 
   @Mutation(() => Boolean)

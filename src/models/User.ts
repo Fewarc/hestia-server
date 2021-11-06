@@ -1,10 +1,7 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from "type-graphql";
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { UserRole } from "../enums/UserRole";
-
-registerEnumType(UserRole, {
-  name: 'UserRole'
-});
+import { Notification } from "./Notification";
 
 @Entity()
 @ObjectType()
@@ -69,4 +66,8 @@ export class User extends BaseEntity {
   // @Field()
   // @Column()
   // profilePicture: 
+
+  @Field(() => Notification)
+  @OneToMany(() => Notification, notification => notification.user)
+  notification: Notification[]
 }
