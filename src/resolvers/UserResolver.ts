@@ -1,5 +1,5 @@
 import { ApolloError } from "apollo-server-errors";
-import { Arg, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Mutation, Query, Resolver, Subscription } from "type-graphql";
 import { UserRole } from "../enums/UserRole";
 import { User } from "../models/User";
 

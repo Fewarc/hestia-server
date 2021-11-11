@@ -1,19 +1,55 @@
 import "reflect-metadata";
 import { createConnection } from "typeorm";
-import { ApolloServer } from "apollo-server";
+import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
 import { UserResolver } from "./resolvers/UserResolver";
+import { NotificationResolver } from "./resolvers/NotificationResolver";
+import { SubscriptionServer } from "subscriptions-transport-ws";
+import { createServer } from "http";
+import { execute, subscribe } from "graphql";
+import express from "express";
 
-async function main() {
-  const connection = await createConnection();
+(async function () {
+  const PORT = 4000;
+
+  const connection = createConnection();
+  const app = express();
+  const httpServer = createServer(app);
+
   const schema = await buildSchema({ 
     resolvers: [
-      UserResolver
+      UserResolver,
+      NotificationResolver
     ]
   });
-  const server = new ApolloServer({ schema })
-  await server.listen(4000)
-  console.log("Server has started!")
-}
+  
+  const server = new ApolloServer({ 
+    schema,
+    plugins: [{
+      async serverWillStart() {
+        return {
+          async drainServer() {
+            subscriptionServer.close();
+          }
+        };
+      }
+    }],
+  });
+  
+  const subscriptionServer = SubscriptionServer.create({
+    schema,
+    execute,
+    subscribe
+  }, {
+    server: httpServer,
+    path: server.graphqlPath
+  });
 
-main();
+  await server.start();
+  server.applyMiddleware({ app });
+
+  
+  httpServer.listen(PORT, () =>
+    console.log(`Server is now running on http://localhost:${PORT}/graphql`)
+  );
+})();

@@ -1,25 +1,24 @@
-import { Field, ID, Int, ObjectType, registerEnumType } from "type-graphql";
-import { BaseEntity, Column, Entity, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Field, ID, Int, ObjectType } from "type-graphql";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { NotificationType } from "../enums/NotificationType";
-import { User } from "./User";
 
 @Entity()
 @ObjectType()
 export class Notification extends BaseEntity {
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @PrimaryGeneratedColumn({ type: 'int' })
   id!: number
 
-  @Field(() => Int)
-  @ManyToOne(() => User, user => user.notification)
-  user: User  
+  @Field(() => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  userId: number
 
-  @Field(() => String)
-  @Column('varchar', { length: 100 })
+  @Field(() => String, { nullable: true })
+  @Column('varchar', { length: 100, nullable: true })
   content: string
 
-  @Field(() => NotificationType)
+  @Field(() => NotificationType, { nullable: true })
   @Column({ type: 'enum', enum: NotificationType, default: NotificationType.NOTIFICATION })
   type: NotificationType
 }
