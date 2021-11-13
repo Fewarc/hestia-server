@@ -1,6 +1,6 @@
 import { subscribe } from "graphql";
 import { PubSubEngine } from "graphql-subscriptions";
-import { Arg, Mutation, PubSub, Resolver, Root, Subscription } from "type-graphql";
+import { Arg, Mutation, PubSub, Query, registerEnumType, Resolver, Root, Subscription } from "type-graphql";
 import { NotificationType } from "../enums/NotificationType";
 import { Notification } from "../models/Notification";
 
@@ -8,6 +8,15 @@ const NOTIFICATION_ADDED: string = 'notificationAdded';
 
 @Resolver()
 export class NotificationResolver {
+  @Query(() => [Notification])
+  async getUserNotifications(
+    @Arg('userId') userId: number
+  ) {
+    const userNotifications: Notification[] = await Notification.find({ userId: userId });
+
+    return userNotifications;
+  }
+  
   @Mutation(() => Notification)
   async createNotification(
     @Arg('type') type: NotificationType,
@@ -23,15 +32,20 @@ export class NotificationResolver {
 
     await newNotification.save();
 
-    await pubSub.publish(NOTIFICATION_ADDED, newNotification);
+    const allNotifications = await Notification.find();
+
+    await pubSub.publish(NOTIFICATION_ADDED, allNotifications);
 
     return newNotification;
   }
 
-  @Subscription({
+  @Subscription(() => [Notification], {
     topics: NOTIFICATION_ADDED
   })
-  newNotification(@Root() notificationPayload: Notification): Notification {
-    return notificationPayload;
+  newNotification(
+    @Root() notificationPayload: Notification[],
+    @Arg('userId') userId: number
+  ) {
+    return notificationPayload.filter(notification => notification.userId === userId);
   }
 }
