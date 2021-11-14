@@ -19,7 +19,7 @@ export class UserResolver {
 
     if(!users.some(user => user.login === login)) throw new ApolloError('user does not exist', 'USER_DOESNT_EXIST');
 
-    const user = await users.find(u => u.login === login);
+    const user = await users.find(user => user.login === login);
 
     if(user?.password !== password) throw new ApolloError('wrong password', 'WRONG_PASSWORD');
 

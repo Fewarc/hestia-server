@@ -1,6 +1,6 @@
 import { registerEnumType } from "type-graphql";
 
-export enum OfertCategory {
+export enum OfferCategory {
   AGRICULTURAL= 'agricultural',
   RESIDENTIAL = 'residential',
   COMMERCIAL = 'commercial',
@@ -9,6 +9,6 @@ export enum OfertCategory {
   SPECIAL_USE = 'special use'
 }
 
-registerEnumType(OfertCategory, {
-  name: 'OfertCategory'
+registerEnumType(OfferCategory, {
+  name: 'OfferCategory'
 });
