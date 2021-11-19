@@ -1,3 +1,4 @@
+require('dotenv').config()
 import "reflect-metadata";
 import { createConnection } from "typeorm";
 import { ApolloServer } from "apollo-server-express";
@@ -8,18 +9,24 @@ import { SubscriptionServer } from "subscriptions-transport-ws";
 import { createServer } from "http";
 import { execute, subscribe } from "graphql";
 import express from "express";
+import { graphqlUploadExpress } from "graphql-upload";
+import { PhotoResolver } from "./resolvers/PhotoResolver";
 
 (async function () {
   const PORT = 4000;
 
   const connection = createConnection();
   const app = express();
+  
+  app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+
   const httpServer = createServer(app);
 
   const schema = await buildSchema({ 
     resolvers: [
       UserResolver,
-      NotificationResolver
+      NotificationResolver,
+      PhotoResolver
     ]
   });
   
