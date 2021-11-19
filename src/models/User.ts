@@ -36,7 +36,7 @@ export class User extends BaseEntity {
   lastName: string
 
   @Field(() => String, { nullable: true })
-  @Column('varchar', { length: 100, nullable: true }) // TODO: check coordinates length
+  @Column('varchar', { length: 100, nullable: true }) // TODO: Coordinates table
   coordinates: string
   
   @Field(() => Int, { nullable: true })
