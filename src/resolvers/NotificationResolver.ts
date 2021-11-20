@@ -39,6 +39,19 @@ export class NotificationResolver {
     return newNotification;
   }
 
+  @Mutation(() => Boolean)
+  async deleteNotification(
+    @Arg('id') id: number,
+    @Arg('content') content: string
+  ) {
+    try {
+      await Notification.delete({ id, content });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   @Subscription(() => [Notification], {
     topics: NOTIFICATION_ADDED
   })
