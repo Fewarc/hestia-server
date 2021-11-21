@@ -39,16 +39,32 @@ export class NotificationResolver {
     return newNotification;
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => [Notification])
   async deleteNotification(
     @Arg('id') id: number,
-    @Arg('content') content: string
+    @Arg('content') content: string,
+    @Arg('userId') userId: number
   ) {
     try {
       await Notification.delete({ id, content });
-      return true;
     } catch (error) {
       return false;
+    } finally {
+      return await Notification.find({ userId: userId });
+    }
+  }
+
+  @Mutation(() => [Notification])
+  async deleteAllNotifications(
+    @Arg('userId') userId: number,
+    @Arg('type') type: NotificationType
+  ) {
+    try {
+      await Notification.delete({ userId, type });
+    } catch (error) {
+      return false;
+    } finally {
+      return await Notification.find({ userId: userId });
     }
   }
 
