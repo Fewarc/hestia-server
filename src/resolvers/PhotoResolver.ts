@@ -15,7 +15,8 @@ export class PhotoResolver {
     { createReadStream, filename }: FileUpload
   ) {
     let success: boolean = false;
-
+    console.log(createReadStream, filename);
+    
     await new Promise(async (resolve, reject) =>
       createReadStream()
         .pipe(
@@ -46,6 +47,6 @@ export class PhotoResolver {
     return success;
   }
 
-
+  // TODO: multiple files ( FilesUpload[] )
 
 }

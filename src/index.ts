@@ -11,6 +11,7 @@ import { execute, subscribe } from "graphql";
 import express from "express";
 import { graphqlUploadExpress } from "graphql-upload";
 import { PhotoResolver } from "./resolvers/PhotoResolver";
+import bodyParser from "body-parser";
 
 (async function () {
   const PORT = 4000;
@@ -18,7 +19,10 @@ import { PhotoResolver } from "./resolvers/PhotoResolver";
   const connection = createConnection();
   const app = express();
   
-  app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+  app.use(
+    bodyParser(),
+    graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 })
+  );
 
   const httpServer = createServer(app);
 
