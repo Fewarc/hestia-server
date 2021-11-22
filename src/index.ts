@@ -11,7 +11,7 @@ import { execute, subscribe } from "graphql";
 import express from "express";
 import { graphqlUploadExpress } from "graphql-upload";
 import { PhotoResolver } from "./resolvers/PhotoResolver";
-import bodyParser from "body-parser";
+import { OfferResolver } from "./resolvers/OfferResolver";
 
 (async function () {
   const PORT = 4000;
@@ -19,10 +19,7 @@ import bodyParser from "body-parser";
   const connection = createConnection();
   const app = express();
   
-  app.use(
-    bodyParser(),
-    graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 })
-  );
+  app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
 
   const httpServer = createServer(app);
 
@@ -30,7 +27,8 @@ import bodyParser from "body-parser";
     resolvers: [
       UserResolver,
       NotificationResolver,
-      PhotoResolver
+      PhotoResolver,
+      OfferResolver
     ]
   });
   

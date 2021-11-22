@@ -1,4 +1,4 @@
-import { FileUpload, GraphQLUpload, graphqlUploadExpress } from "graphql-upload";
+import { FileUpload, GraphQLUpload, graphqlUploadExpress, Upload } from "graphql-upload";
 import { Arg, Mutation, Resolver } from "type-graphql";
 import { OfferCategory } from "../enums/OfferCategory";
 import { OfferType } from "../enums/OfferType";
@@ -14,14 +14,15 @@ export class OfferResolver {
     @Arg('category') category: OfferCategory,
     @Arg('furnished') furnished: boolean,
     @Arg('area') area: number,
-    @Arg('floor') floor: number | null,
-    @Arg('numberOfRooms') numberOfRooms: number | null,
+    @Arg('floor', { nullable: true }) floor: number,
+    @Arg('numberOfRooms', { nullable: true }) numberOfRooms: number,
     @Arg('price') price: number,
     @Arg('currency') currency: string,
     @Arg('negotiable') negotiable: boolean,
     @Arg('address') address: string,
-    @Arg('coordinates') coordinates: { lat: number, lng: number },
-    @Arg('files', () => GraphQLUpload) files: FileUpload
+    @Arg('lat') lat: number,
+    @Arg('lng') lng: number,
+    @Arg('files', () => GraphQLUpload, { nullable: true }) files: Upload
   ) {
     let newOffer = Offer.create();
 
@@ -37,12 +38,14 @@ export class OfferResolver {
     newOffer.currency = currency;
     newOffer.negotiable = negotiable;
     newOffer.address = address;
-    newOffer.lat = coordinates.lat;
-    newOffer.lng = coordinates.lng;
+    newOffer.lat = lat;
+    newOffer.lng = lng;
 
     const offer = await newOffer.save();
 
+    console.log(newOffer);
     console.log(files);
 
+    return newOffer;
   }
 }
