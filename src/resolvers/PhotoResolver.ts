@@ -9,6 +9,7 @@ const bucketName = 'hestia-photos';
 @Resolver()
 export class PhotoResolver {
 
+  // TESTING MUTATION
   @Mutation(() => Boolean)
   async singleUpload(
     @Arg('file', () => GraphQLUpload)

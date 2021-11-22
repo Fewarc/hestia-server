@@ -17,15 +17,11 @@ export class Offer extends BaseEntity {
 
   @Field(() => String, { nullable: true })
   @Column('varchar', { length: 100, nullable: true })
-  descritpion: string
+  description: string
 
   @Field(() => Float)
   @Column({ type: 'float', nullable: true })
   price: number
-
-  // @Field()
-  // @Column()
-  // coordinates
 
   // @Field()
   // @Column()
@@ -49,11 +45,11 @@ export class Offer extends BaseEntity {
 
   @Field(() => Int, { nullable: true })
   @Column({ type: 'int', nullable: true })
-  floor: number
+  floor: number | null
   
   @Field(() => Int, { nullable: true })
   @Column({ type: 'int', nullable: true })
-  numberOfRooms: number
+  numberOfRooms: number | null
 
   @Field(() => String, { nullable: true })
   @Column('varchar', { length: 3, nullable: true })
@@ -66,6 +62,18 @@ export class Offer extends BaseEntity {
   @Field(() => OfferType)
   @Column({ type: 'enum', enum: OfferType, default: OfferType.DISPOSAL })
   offerType: OfferType
+
+  @Field(() => String)
+  @Column('varchar', { nullable: true })
+  address: string
+
+  @Field(() => Float)
+  @Column({ type: 'float', nullable: true })
+  lat: number
+
+  @Field(() => Float)
+  @Column({ type: 'float', nullable: true })
+  lng: number
 
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })
