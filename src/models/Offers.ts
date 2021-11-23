@@ -75,6 +75,10 @@ export class Offer extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   lng: number
 
+  @Field(() => String)
+  @Column({ type: 'varchar', nullable: true })
+  uploads: string
+
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date

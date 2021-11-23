@@ -12,9 +12,11 @@ export class PhotoResolver {
   @Mutation(() => Boolean)
   async singleUpload(
     @Arg('file', () => GraphQLUpload)
-    { createReadStream, filename }: FileUpload
+    file: FileUpload
   ) {
     let success: boolean = false;
+    let { createReadStream, filename } = file; 
+    console.log('FILE:', file);
     console.log(createReadStream, filename);
     
     filename = `1-${filename}`;
