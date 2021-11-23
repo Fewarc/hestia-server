@@ -13,8 +13,7 @@ export class Photo extends BaseEntity {
   @Column({ type: 'int', nullable: true })
   offerId: number
 
-  // @Field()
-  // @Column()
-  // image: any
-
+  @Field(() => String)
+  @Column('varchar', { nullable: true })
+  imageLink: string
 }

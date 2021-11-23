@@ -1,13 +1,18 @@
-import { FileUpload, GraphQLUpload, graphqlUploadExpress, Upload } from "graphql-upload";
+import { FileUpload, GraphQLUpload } from "graphql-upload";
+import { Storage } from "@google-cloud/storage";
 import { Arg, Mutation, Resolver } from "type-graphql";
 import { OfferCategory } from "../enums/OfferCategory";
 import { OfferType } from "../enums/OfferType";
 import { Offer } from "../models/Offers";
+import { Photo } from "../models/Photo";
+
+const storage = new Storage({ keyFilename: process.env.GOOGLE_STORAGE_API_KEY_PATH as string })
+const bucketName = process.env.BUCKET_NAME as string;
 
 @Resolver()
 export class OfferResolver {
   @Mutation(() => Offer)
-  async createNewOffert(
+  async createNewOffer(
     @Arg('title') title: string,
     @Arg('description') description: string,
     @Arg('offerType') offerType: OfferType,
@@ -22,7 +27,7 @@ export class OfferResolver {
     @Arg('address') address: string,
     @Arg('lat') lat: number,
     @Arg('lng') lng: number,
-    @Arg('files', () => GraphQLUpload, { nullable: true }) files: Upload
+    @Arg('files', () => [GraphQLUpload], { nullable: true }) files: FileUpload[]
   ) {
     let newOffer = Offer.create();
 
@@ -41,10 +46,47 @@ export class OfferResolver {
     newOffer.lat = lat;
     newOffer.lng = lng;
 
-    const offer = await newOffer.save();
+    await newOffer.save();
 
     console.log(newOffer);
-    console.log(files);
+
+    let success: boolean[] = Array(files.length).fill(false);
+
+    files.forEach(async (file, index) => {
+      file.filename = `${newOffer.id}-${index}`;
+      success[index] = false;
+
+      await new Promise(async (resolve, reject) =>
+      file.createReadStream()
+        .pipe(
+          storage.bucket(bucketName).file(file.filename).createWriteStream({
+            resumable: false,
+            gzip: true
+          })
+        )
+        .on('finish', () => 
+          storage
+            .bucket(bucketName)
+            .file(file.filename)
+            .makePublic()
+            .then(async e => {
+              let newPhoto = Photo.create();
+
+              newPhoto.offerId = newOffer.id;
+              newPhoto.imageLink = e[0].object;
+
+              await newPhoto.save();
+            })
+            .then(() => {
+              resolve(true);
+              success[index] = true;
+            })
+        )
+        .on('error', (error) => {
+          reject(error);
+        })
+    );
+    });
 
     return newOffer;
   }

@@ -3,7 +3,6 @@ import { FileUpload, GraphQLUpload } from "graphql-upload";
 import { Arg, Mutation, Resolver } from "type-graphql";
 
 const storage = new Storage({ keyFilename: process.env.GOOGLE_STORAGE_API_KEY_PATH as string })
-
 const bucketName = 'hestia-photos';
 
 @Resolver()
@@ -18,6 +17,8 @@ export class PhotoResolver {
     let success: boolean = false;
     console.log(createReadStream, filename);
     
+    filename = `1-${filename}`;
+
     await new Promise(async (resolve, reject) =>
       createReadStream()
         .pipe(
@@ -32,7 +33,7 @@ export class PhotoResolver {
             .file(filename)
             .makePublic()
             .then(e => {
-              console.log(e[0].object);
+              console.log(e);
               console.log(`https://storage.googleapis.com/${bucketName}/${e[0].object}`);
             })
             .then(() => {
