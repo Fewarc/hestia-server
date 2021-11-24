@@ -1,6 +1,7 @@
 import { Storage } from "@google-cloud/storage";
 import { FileUpload, GraphQLUpload } from "graphql-upload";
-import { Arg, Mutation, Resolver } from "type-graphql";
+import { Arg, Mutation, Resolver, Query } from "type-graphql";
+import { Photo } from "../models/Photo";
 
 const storage = new Storage({ keyFilename: process.env.GOOGLE_STORAGE_API_KEY_PATH as string })
 const bucketName = 'hestia-photos';
@@ -51,6 +52,22 @@ export class PhotoResolver {
     return success;
   }
 
-  // TODO: multiple files ( FilesUpload[] )
+  @Query(() => [Photo])
+  async getPhotos(
+
+  ) {
+    const photos = await Photo.find();
+
+    return photos;
+  }
+
+  @Query(() => [Photo])
+  async getThumbnails(
+
+  ) {
+    const photos = await Photo.find();
+
+    return photos.filter((photo, index) => photo.offerId !== photos[index - 1]?.offerId);
+  }
 
 }

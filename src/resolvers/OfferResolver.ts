@@ -1,6 +1,6 @@
 import { FileUpload, GraphQLUpload } from "graphql-upload";
 import { Storage } from "@google-cloud/storage";
-import { Arg, Mutation, Resolver } from "type-graphql";
+import { Arg, Mutation, Query, Resolver } from "type-graphql";
 import { OfferCategory } from "../enums/OfferCategory";
 import { OfferType } from "../enums/OfferType";
 import { Offer } from "../models/Offers";
@@ -14,6 +14,7 @@ export class OfferResolver {
   @Mutation(() => Offer)
   async createNewOffer(
     @Arg('title') title: string,
+    @Arg('ownerId') ownerId: number,
     @Arg('description') description: string,
     @Arg('offerType') offerType: OfferType,
     @Arg('category') category: OfferCategory,
@@ -32,6 +33,7 @@ export class OfferResolver {
     let newOffer = Offer.create();
 
     newOffer.title = title;
+    newOffer.ownerId = ownerId;
     newOffer.description = description;
     newOffer.offerType = offerType;
     newOffer.category = category;
@@ -45,6 +47,8 @@ export class OfferResolver {
     newOffer.address = address;
     newOffer.lat = lat;
     newOffer.lng = lng;
+
+    await newOffer.save();
 
     let successUploads: number = 0;
     const totalUploads: number = files.length;
@@ -70,6 +74,9 @@ export class OfferResolver {
             .then(async e => {
               let newPhoto = Photo.create();
 
+              console.log(newOffer, newOffer.id);
+              
+
               newPhoto.offerId = newOffer.id;
               newPhoto.imageLink = `https://storage.googleapis.com/${bucketName}/${e[0].object}`;
 
@@ -94,4 +101,14 @@ export class OfferResolver {
 
     return newOffer;
   }
+
+  @Query(() => [Offer])
+  async getOffers(
+    
+  ) {
+    const offers = await Offer.find();
+
+    return offers;
+  }
+
 }

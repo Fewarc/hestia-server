@@ -16,20 +16,20 @@ export class Offer extends BaseEntity {
   title: string
 
   @Field(() => String, { nullable: true })
-  @Column('varchar', { length: 100, nullable: true })
+  @Column('varchar', { length: 1000, nullable: true })
   description: string
 
   @Field(() => Float)
   @Column({ type: 'float', nullable: true })
   price: number
 
-  // @Field()
-  // @Column()
-  // agency
+  @Field(() => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true, default: 0 })
+  ownerId: number
 
   // @Field()
-  // @Column()
-  // agent
+  // @Column()        TODO
+  // agency
 
   @Field(() => OfferCategory)
   @Column({ type: 'enum', enum: OfferCategory, default: OfferCategory.RESIDENTIAL })
