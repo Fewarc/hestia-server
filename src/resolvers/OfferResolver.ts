@@ -74,9 +74,6 @@ export class OfferResolver {
             .then(async e => {
               let newPhoto = Photo.create();
 
-              console.log(newOffer, newOffer.id);
-              
-
               newPhoto.offerId = newOffer.id;
               newPhoto.imageLink = `https://storage.googleapis.com/${bucketName}/${e[0].object}`;
 
