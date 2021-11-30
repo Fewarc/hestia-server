@@ -1,7 +1,11 @@
 import { Field, Int, ObjectType } from "type-graphql";
+import { Event } from "../models/Event";
 
 @ObjectType()
 export class Calendar {
   @Field(() => [[Int]])
-  day: number[][]
+  calendar: number[][]
+
+  @Field(() => [Event])
+  events: Event[]
 }

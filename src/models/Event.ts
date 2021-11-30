@@ -16,9 +16,12 @@ export class Event extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   eventName: string
 
-  
+  @Field(() => String, { nullable: true })
+  @Column({ type: 'varchar', nullable: true })
+  eventDescription: string
+
   @Field(() => Date, { nullable: true })
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true, default: null })
   eventOccurance: Date
 
   @Field(() => Date)

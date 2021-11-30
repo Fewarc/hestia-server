@@ -12,6 +12,7 @@ import express from "express";
 import { graphqlUploadExpress } from "graphql-upload";
 import { PhotoResolver } from "./resolvers/PhotoResolver";
 import { OfferResolver } from "./resolvers/OfferResolver";
+import { CalendarResolver } from "./resolvers/CalendarResolver";
 
 (async function () {
   const PORT = 4000;
@@ -28,7 +29,8 @@ import { OfferResolver } from "./resolvers/OfferResolver";
       UserResolver,
       NotificationResolver,
       PhotoResolver,
-      OfferResolver
+      OfferResolver,
+      CalendarResolver
     ]
   });
   
