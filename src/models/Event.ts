@@ -22,7 +22,16 @@ export class Event extends BaseEntity {
 
   @Field(() => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true, default: null })
-  eventOccurance: Date
+  eventOccuranceDate: Date
+
+  @Field(() => Int, { nullable: true })
+  year: number
+
+  @Field(() => Int, { nullable: true })
+  month: number
+
+  @Field(() => Int, { nullable: true })
+  day: number
 
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })

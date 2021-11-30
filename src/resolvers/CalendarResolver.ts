@@ -20,7 +20,7 @@ export class CalendarResolver {
     newEvent.ownerId = ownerId;
     newEvent.eventName = eventName;
     newEvent.eventDescription = eventDescription;
-    newEvent.eventOccurance = eventOccurance;
+    newEvent.eventOccuranceDate = eventOccurance;
 
     await newEvent.save();
 
@@ -55,8 +55,15 @@ export class CalendarResolver {
     const userEventsById: number[] = (await EventParticipants.find({ participantId: userId })).map(event => event.eventId);
     const events: Event[] = await Event.find({where: { id: In(userEventsById) }});
 
+    const extendedEvents: any[] = events.map(event => ({ 
+      ...event, 
+      year: new Date(event.eventOccuranceDate).getFullYear(),
+      month: new Date(event.eventOccuranceDate).getMonth(),
+      day: new Date(event.eventOccuranceDate).getDay()
+    }));
+
     let calendar: Calendar = new Calendar;
-    calendar.events = events;
+    calendar.events = extendedEvents;
     calendar.calendar = getCalendarDays(year);
 
     return calendar; 
