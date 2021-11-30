@@ -59,7 +59,7 @@ export class CalendarResolver {
       ...event, 
       year: new Date(event.eventOccuranceDate).getFullYear(),
       month: new Date(event.eventOccuranceDate).getMonth(),
-      day: new Date(event.eventOccuranceDate).getDay()
+      day: new Date(event.eventOccuranceDate).getDate()
     }));
 
     let calendar: Calendar = new Calendar;
