@@ -9,6 +9,7 @@ import { SubscriptionServer } from "subscriptions-transport-ws";
 import { createServer } from "http";
 import { execute, subscribe } from "graphql";
 import express from "express";
+import expressJwt from "express-jwt";
 import { graphqlUploadExpress } from "graphql-upload";
 import { PhotoResolver } from "./resolvers/PhotoResolver";
 import { OfferResolver } from "./resolvers/OfferResolver";
@@ -21,6 +22,11 @@ import { CalendarResolver } from "./resolvers/CalendarResolver";
   const app = express();
   
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+  app.use(expressJwt({
+    secret: process.env.JWT_SECRET as string,
+    algorithms: ['HS256'],
+    credentialsRequired: false
+  }));
 
   const httpServer = createServer(app);
 
@@ -45,6 +51,7 @@ import { CalendarResolver } from "./resolvers/CalendarResolver";
         };
       }
     }],
+    context: ({ req }) => ({ req })
   });
   
   const subscriptionServer = SubscriptionServer.create({

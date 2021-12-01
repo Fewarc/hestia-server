@@ -2,6 +2,7 @@ import { ApolloError } from "apollo-server-errors";
 import { Arg, Mutation, Query, Resolver } from "type-graphql";
 import { UserRole } from "../enums/UserRole";
 import { User } from "../models/User";
+import jwt, { Secret } from "jsonwebtoken"
 
 @Resolver()
 export class UserResolver {
@@ -10,7 +11,7 @@ export class UserResolver {
     return User.find();
   }
 
-  @Query(() => User)
+  @Query(() => String)
   async logInUser(
     @Arg('login') login: string,
     @Arg('password') password: string
@@ -23,7 +24,15 @@ export class UserResolver {
 
     if(user?.password !== password) throw new ApolloError('wrong password', 'WRONG_PASSWORD');
 
-    return user;
+    return jwt.sign(
+      {user},
+      process.env.JWT_SECRET as Secret,
+      {
+        algorithm: 'HS256',
+        subject: user.id.toString(),
+        expiresIn: process.env.JWT_DURATION
+      }
+    );
   }
 
   @Mutation(() => Boolean)
