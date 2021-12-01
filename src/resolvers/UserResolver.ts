@@ -3,6 +3,7 @@ import { Arg, Mutation, Query, Resolver } from "type-graphql";
 import { UserRole } from "../enums/UserRole";
 import { User } from "../models/User";
 import jwt, { Secret } from "jsonwebtoken"
+import { Like } from "typeorm";
 
 @Resolver()
 export class UserResolver {
@@ -56,5 +57,16 @@ export class UserResolver {
 
     await newUser.save();
     return true;
+  }
+
+  @Query(() => [User])
+  async findUsers(
+    @Arg('searchValue') searchValue: string
+  ) {
+    const resultByLogin = await User.find({where: { login: Like(`%${searchValue}%`) }});
+    const resultByFirstName = await User.find({where: { firstName: Like(`%${searchValue}%`) }});
+    const resultByLastName = await User.find({where: { lastName: Like(`%${searchValue}%`) }});
+
+    return [ ...resultByLogin, ...resultByFirstName, ...resultByLastName ];
   }
 }

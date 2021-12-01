@@ -12,7 +12,7 @@ export class NotificationResolver {
   async getUserNotifications(
     @Arg('userId') userId: number
   ) {
-    const userNotifications: Notification[] = await Notification.find({ userId: userId });
+    const userNotifications: Notification[] = await Notification.find({ targetId: userId });
 
     return userNotifications;
   }
@@ -21,14 +21,16 @@ export class NotificationResolver {
   async createNotification(
     @Arg('type') type: NotificationType,
     @Arg('content') content: string,
-    @Arg('user') userId: number,
+    @Arg('targetId') targetId: number,
+    @Arg('senderId') senderId: number,
     @PubSub() pubSub: PubSubEngine
   ) {
     let newNotification: Notification = Notification.create();
 
     newNotification.type = type;
     newNotification.content = content;
-    newNotification.userId = userId;
+    newNotification.targetId = targetId;
+    newNotification.senderId = senderId;
 
     await newNotification.save();
 
@@ -50,21 +52,21 @@ export class NotificationResolver {
     } catch (error) {
       return false;
     } finally {
-      return await Notification.find({ userId: userId });
+      return await Notification.find({ targetId: userId });
     }
   }
 
   @Mutation(() => [Notification])
   async deleteAllNotifications(
-    @Arg('userId') userId: number,
+    @Arg('targetId') targetId: number,
     @Arg('type') type: NotificationType
   ) {
     try {
-      await Notification.delete({ userId, type });
+      await Notification.delete({ targetId, type });
     } catch (error) {
       return false;
     } finally {
-      return await Notification.find({ userId: userId });
+      return await Notification.find({ targetId: targetId });
     }
   }
 
@@ -75,6 +77,6 @@ export class NotificationResolver {
     @Root() notificationPayload: Notification[],
     @Arg('userId') userId: number
   ) {
-    return notificationPayload.filter(notification => notification.userId === userId);
+    return notificationPayload.filter(notification => notification.targetId === userId);
   }
 }

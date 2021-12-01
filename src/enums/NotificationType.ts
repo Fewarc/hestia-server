@@ -3,7 +3,8 @@ import { registerEnumType } from "type-graphql";
 export enum NotificationType {
   NOTIFICATION = 'notification',
   MESSAGE = 'message',
-  EVENT = 'event'
+  EVENT = 'event',
+  INVITE = 'invite'
 }
 
 registerEnumType(NotificationType, {

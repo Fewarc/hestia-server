@@ -68,6 +68,6 @@ export class User extends BaseEntity {
   // profilePicture: 
 
   @Field(() => Notification)
-  @OneToMany(() => Notification, notification => notification.userId)
+  @OneToMany(() => Notification, notification => notification.targetId)
   notification: Notification[]
 }
