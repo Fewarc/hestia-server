@@ -37,6 +37,11 @@ export class ContactResolver {
   async getContacts(
     @Arg('userId') userId: number
   ) {
-    const userContacts = await Contact.find({ userId: userId });
+    const userContactsByUser = await Contact.find({ userId: userId });
+    const userContactsByContact = await Contact.find({ contactId: userId });
+
+    console.log([ ...userContactsByContact, ...userContactsByUser ]);
+
+    return [];
   }
 }

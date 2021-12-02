@@ -46,14 +46,19 @@ export class NotificationResolver {
   async deleteNotification(
     @Arg('id') id: number,
     @Arg('content') content: string,
-    @Arg('userId') userId: number
+    @Arg('userId') userId: number,
+    @PubSub() pubSub: PubSubEngine
   ) {
     try {
       await Notification.delete({ id, content });
     } catch (error) {
-      throw new ApolloError('Something went wrong while processing the notification', 'BOTIFICATION_DELETE_ERROR');
+      throw new ApolloError('Something went wrong while processing the notification', 'NOTIFICATION_DELETE_ERROR');
       return false;
     } finally {
+      const allNotifications = await Notification.find();
+
+      await pubSub.publish(Config.NOTIFICATION_ADDED, allNotifications);
+
       return await Notification.find({ targetId: userId });
     }
   }
@@ -66,7 +71,7 @@ export class NotificationResolver {
     try {
       await Notification.delete({ targetId, type });
     } catch (error) {
-      throw new ApolloError('Something went wrong while processing the notification', 'BOTIFICATION_DELETE_ERROR');
+      throw new ApolloError('Something went wrong while processing the notification', 'NOTIFICATION_DELETE_ERROR');
       return false;
     } finally {
       return await Notification.find({ targetId: targetId });
@@ -100,10 +105,17 @@ export class NotificationResolver {
     try {
       await Notification.delete({ id, content });
     } catch (error) {
-      throw new ApolloError('Something went wrong while processing the notification', 'BOTIFICATION_DELETE_ERROR');
+      throw new ApolloError('Something went wrong while processing the notification', 'NOTIFICATION_DELETE_ERROR');
       return false;
     } finally {
-      return await Notification.find({ targetId: userId });
+      return await Notification.find({ targetId: targetId });
     }
+  }
+
+  @Query(() => [Notification])
+  async getPendingInvites(
+    @Arg('userId') userId: number
+  ) {
+    return await Notification.find({ senderId: userId });
   }
 }
