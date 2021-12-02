@@ -61,12 +61,13 @@ export class UserResolver {
 
   @Query(() => [User])
   async findUsers(
-    @Arg('searchValue') searchValue: string
+    @Arg('searchValue') searchValue: string,
+    @Arg('userId') userId: number
   ) {
     const resultByLogin = await User.find({where: { login: Like(`%${searchValue}%`) }});
     const resultByFirstName = await User.find({where: { firstName: Like(`%${searchValue}%`) }});
     const resultByLastName = await User.find({where: { lastName: Like(`%${searchValue}%`) }});
 
-    return [ ...resultByLogin, ...resultByFirstName, ...resultByLastName ];
+    return [ ...resultByLogin, ...resultByFirstName, ...resultByLastName ].filter(user => user.id !== userId);
   }
 }
