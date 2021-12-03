@@ -4,6 +4,7 @@ import { UserRole } from "../enums/UserRole";
 import { User } from "../models/User";
 import jwt, { Secret } from "jsonwebtoken"
 import { Like } from "typeorm";
+import { Contact } from "../models/Contact";
 
 @Resolver()
 export class UserResolver {
@@ -68,6 +69,18 @@ export class UserResolver {
     const resultByFirstName = await User.find({where: { firstName: Like(`%${searchValue}%`) }});
     const resultByLastName = await User.find({where: { lastName: Like(`%${searchValue}%`) }});
 
-    return [ ...resultByLogin, ...resultByFirstName, ...resultByLastName ].filter(user => user.id !== userId);
+    const userContacts: Contact[] = await Contact.find({where: [
+      { userId: userId },
+      { contactId: userId }
+    ]});
+
+    return [ ...resultByLogin, ...resultByFirstName, ...resultByLastName ].filter(user => 
+      user.id !== userId).filter(user => !userContacts.some(userContact => {
+        if (userContact.userId === userId) {
+          return user.id === userContact.contactId;
+        } else {
+          return user.id === userContact.userId;
+        }
+      }));
   }
 }

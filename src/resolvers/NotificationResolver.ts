@@ -97,6 +97,13 @@ export class NotificationResolver {
   ) {
     let newContact = Contact.create();
 
+    const possibleConection = await Contact.find({where: [
+      { userId: userId, contactId: targetId },
+      { userId: targetId, contactId: userId },
+    ]})
+
+    if (possibleConection) throw new ApolloError('This user already is your contact, please refresh page', 'ALREADY_CONTACT');
+
     newContact.userId = userId;
     newContact.contactId = targetId;
 

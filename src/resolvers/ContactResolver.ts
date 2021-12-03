@@ -19,6 +19,13 @@ export class ContactResolver {
 
     if (targetId === senderId) throw new ApolloError(`You can't send an invite to yourself`, 'INVITATION_SAME_USER_ERROR');
 
+    const possibleConection = await Contact.find({where: [
+      { userId: senderId, contactId: targetId },
+      { userId: targetId, contactId: senderId },
+    ]})
+
+    if (possibleConection) throw new ApolloError('This user already is your contact, please refresh page', 'ALREADY_CONTACT');
+
     newNotification.targetId = targetId;
     newNotification.senderId = senderId;
     newNotification.content = inviteContent;
@@ -40,8 +47,27 @@ export class ContactResolver {
     const userContactsByUser = await Contact.find({ userId: userId });
     const userContactsByContact = await Contact.find({ contactId: userId });
 
-    console.log([ ...userContactsByContact, ...userContactsByUser ]);
+    const uniqueContacts = [ 
+      ...userContactsByUser, 
+      ...userContactsByContact.filter(contact => 
+        !userContactsByUser.some(contactByUser => 
+          contact.userId === contactByUser.contactId && contact.contactId === contactByUser.userId)) 
+    ];
 
-    return [];
+    const normalizedIds = uniqueContacts.map(contact => {
+      if (contact.userId === userId) {
+        return { id: contact.contactId }
+      } else {
+        return {
+          id: contact.userId,
+        }
+      }
+    });
+
+    const userContacts = await User.find({where: [
+      ...normalizedIds
+    ]});
+
+    return userContacts;
   }
 }
