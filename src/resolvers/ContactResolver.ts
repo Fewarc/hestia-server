@@ -73,7 +73,7 @@ export class ContactResolver {
     return userContacts;
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => User)
   async removeContact(
     @Arg('userId') userId: number,
     @Arg('contactId') contactId: number
@@ -85,13 +85,15 @@ export class ContactResolver {
 
     if (!contact) throw new ApolloError('This user is no longer your contact', 'NO_LONGER_CONTACT')
 
+    const removedContactUser: User | undefined = await User.findOne({id: contact.userId === userId ? contactId : userId });
+
     try {
       await Contact.delete({ userId: contact.userId, contactId: contact.contactId });
     } catch (error) {
       throw new ApolloError('Something went wrong while processing removal request', 'CONTAC_REMOVAL_ERROR');
       return false;
     } finally {
-      return true;
+      return removedContactUser;
     }
   }
 }

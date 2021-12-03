@@ -6,6 +6,7 @@ import Config from "../constants/Config";
 import { NotificationType } from "../enums/NotificationType";
 import { Contact } from "../models/Contact";
 import { Notification } from "../models/Notification";
+import { User } from "../models/User";
 
 @Resolver()
 export class NotificationResolver {
@@ -93,7 +94,8 @@ export class NotificationResolver {
     @Arg('id') id: number,
     @Arg('content') content: string,
     @Arg('userId') userId: number,
-    @Arg('targetId') targetId: number
+    @Arg('targetId') targetId: number,
+    @PubSub() pubSub: PubSubEngine
   ) {
     let newContact = Contact.create();
 
@@ -108,6 +110,21 @@ export class NotificationResolver {
     newContact.contactId = targetId;
 
     await newContact.save();
+
+    let newNotification: Notification = Notification.create();
+
+    const sender: User | undefined = await User.findOne({ id: targetId });
+
+    newNotification.targetId = userId;
+    newNotification.senderId = targetId;
+    newNotification.content = `User @${sender?.login} has accepted your invite!`;
+    newNotification.type = NotificationType.NOTIFICATION;
+
+    await newNotification.save();
+
+    const allNotifications = await Notification.find();
+
+    await pubSub.publish(Config.NOTIFICATION_ADDED, allNotifications);
 
     try {
       await Notification.delete({ id, content });
