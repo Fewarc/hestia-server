@@ -64,6 +64,8 @@ export class ContactResolver {
       }
     });
 
+    if (!uniqueContacts.length && !normalizedIds.length) return [];
+
     const userContacts = await User.find({where: [
       ...normalizedIds
     ]});

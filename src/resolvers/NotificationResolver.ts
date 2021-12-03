@@ -102,7 +102,7 @@ export class NotificationResolver {
       { userId: targetId, contactId: userId },
     ]})
 
-    if (possibleConection) throw new ApolloError('This user already is your contact, please refresh page', 'ALREADY_CONTACT');
+    if (!!possibleConection.length) throw new ApolloError('This user already is your contact, please refresh page', 'ALREADY_CONTACT');
 
     newContact.userId = userId;
     newContact.contactId = targetId;
