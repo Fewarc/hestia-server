@@ -81,6 +81,7 @@ export class UserResolver {
         } else {
           return user.id === userContact.userId;
         }
-      }));
+      })
+    );
   }
 }

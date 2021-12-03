@@ -24,7 +24,7 @@ export class ContactResolver {
       { userId: targetId, contactId: senderId },
     ]})
 
-    if (possibleConection) throw new ApolloError('This user already is your contact, please refresh page', 'ALREADY_CONTACT');
+    if (!!possibleConection.length) throw new ApolloError('This user already is your contact, please refresh page', 'ALREADY_CONTACT');
 
     newNotification.targetId = targetId;
     newNotification.senderId = senderId;
@@ -69,5 +69,27 @@ export class ContactResolver {
     ]});
 
     return userContacts;
+  }
+
+  @Mutation(() => Boolean)
+  async removeContact(
+    @Arg('userId') userId: number,
+    @Arg('contactId') contactId: number
+  ) {
+    const contact: Contact | undefined = await Contact.findOne({where: [
+      { userId: userId, contactId: contactId },
+      { userId: contactId, contactId: userId }
+    ]});
+
+    if (!contact) throw new ApolloError('This user is no longer your contact', 'NO_LONGER_CONTACT')
+
+    try {
+      await Contact.delete({ userId: contact.userId, contactId: contact.contactId });
+    } catch (error) {
+      throw new ApolloError('Something went wrong while processing removal request', 'CONTAC_REMOVAL_ERROR');
+      return false;
+    } finally {
+      return true;
+    }
   }
 }
