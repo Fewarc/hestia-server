@@ -5,10 +5,11 @@ import { Event } from "../models/Event";
 import { ApolloError } from "apollo-server-express";
 import { In } from "typeorm";
 import { getCalendarDays } from "../utils/calendarUtils";
+import { User } from "../models/User";
 
 @Resolver()
 export class CalendarResolver {
-  @Mutation(() => Event)
+  @Mutation(() => [Event])
   async createEvent(
     @Arg('ownerId') ownerId: number,
     @Arg('eventName') eventName: string,
@@ -24,7 +25,52 @@ export class CalendarResolver {
 
     await newEvent.save();
 
-    return newEvent;
+    const createdEventDate = new Date(
+      eventOccurance.getFullYear(), 
+      eventOccurance.getMonth(), 
+      eventOccurance.getDate()
+    );
+
+    let events: Event[] = await Event.find();
+
+    return events.filter((event: Event, index) => {
+      const eventDate = new Date(
+        event.eventOccuranceDate.getFullYear(),
+        event.eventOccuranceDate.getMonth(),
+        event.eventOccuranceDate.getDate(),
+      );
+
+      console.log('ITERATION:', index, createdEventDate, eventDate);
+
+      return createdEventDate === eventDate;
+    });
+  }
+
+  @Query(() => [Event])
+  async getUserEvents(
+    @Arg('userId') userId: number,
+    @Arg('day') day: number,
+    @Arg('month') month: number,
+    @Arg('year') year: number,
+  ) {
+    const userEventsById: number[] = (await EventParticipants.find({ participantId: userId })).map(event => event.eventId);
+    const allUserEvents: Event[] = await Event.find({where: [
+      { id: In(userEventsById) },
+      { ownerId: userId }
+    ]});
+
+    console.log('ALL USER EVENTS:', allUserEvents);
+    
+
+    return allUserEvents.filter((event: Event) => {
+      const eventDate = new Date(event.eventOccuranceDate);
+
+      return (
+        year === eventDate.getFullYear() &&
+        month === eventDate.getMonth() &&
+        day === eventDate.getDate()
+      );
+    });
   }
 
   @Mutation(() => Event)
@@ -53,7 +99,10 @@ export class CalendarResolver {
     @Arg('year') year?: number
   ) {
     const userEventsById: number[] = (await EventParticipants.find({ participantId: userId })).map(event => event.eventId);
-    const events: Event[] = await Event.find({where: { id: In(userEventsById) }});
+    const events: Event[] = await Event.find({where: [
+      { id: In(userEventsById) },
+      { ownerId: userId }
+    ]});
 
     const extendedEvents: any[] = events.map(event => ({ 
       ...event, 
@@ -66,6 +115,19 @@ export class CalendarResolver {
     calendar.events = extendedEvents;
     calendar.calendar = getCalendarDays(year);
 
-    return calendar; 
+    return calendar;
+  }
+
+  @Query(() => [User])
+  async getEventParticipants(
+    @Arg('eventId') eventId: number
+  ) {
+    let participantsById: number[] = (await EventParticipants.find({ eventId: eventId })).map(participant => participant.participantId);
+    const event = await Event.findOne({ id: eventId });
+    event && participantsById.push(event.ownerId);
+
+    const participants = await User.find({ where: { id: In(participantsById) } });
+
+    return participants;
   }
 }
