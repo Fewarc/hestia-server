@@ -40,8 +40,6 @@ export class CalendarResolver {
         event.eventOccuranceDate.getDate(),
       );
 
-      console.log('ITERATION:', index, createdEventDate, eventDate);
-
       return createdEventDate === eventDate;
     });
   }
@@ -59,10 +57,7 @@ export class CalendarResolver {
       { ownerId: userId }
     ]});
 
-    console.log('ALL USER EVENTS:', allUserEvents);
-    
-
-    return allUserEvents.filter((event: Event) => {
+    const extendedEvents = allUserEvents.filter((event: Event) => {
       const eventDate = new Date(event.eventOccuranceDate);
 
       return (
@@ -70,7 +65,14 @@ export class CalendarResolver {
         month === eventDate.getMonth() &&
         day === eventDate.getDate()
       );
-    });
+    }).map((event: Event) => ({
+      ...event,
+      year: new Date(event.eventOccuranceDate).getFullYear(),
+      month: new Date(event.eventOccuranceDate).getMonth(),
+      day: new Date(event.eventOccuranceDate).getDate()
+    }));
+
+    return extendedEvents; 
   }
 
   @Mutation(() => Event)
