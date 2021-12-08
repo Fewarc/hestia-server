@@ -15,6 +15,7 @@ import { PhotoResolver } from "./resolvers/PhotoResolver";
 import { OfferResolver } from "./resolvers/OfferResolver";
 import { CalendarResolver } from "./resolvers/CalendarResolver";
 import { ContactResolver } from "./resolvers/ContactResolver";
+import { MessageResolver } from "./resolvers/MessageResolver";
 
 (async function () {
   const PORT = 4000;
@@ -38,7 +39,8 @@ import { ContactResolver } from "./resolvers/ContactResolver";
       PhotoResolver,
       OfferResolver,
       CalendarResolver,
-      ContactResolver
+      ContactResolver,
+      MessageResolver
     ]
   });
   
