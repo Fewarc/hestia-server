@@ -1,11 +1,13 @@
 import { Arg, Mutation, Query, Resolver } from "type-graphql";
 import { Calendar } from "../models/Calendar";
 import { EventParticipants } from "../models/EventParticipants";
+import { Notification } from "../models/Notification";
 import { Event } from "../models/Event";
 import { ApolloError } from "apollo-server-express";
-import { In } from "typeorm";
+import { In, Like } from "typeorm";
 import { getCalendarDays } from "../utils/calendarUtils";
 import { User } from "../models/User";
+import Config from "../constants/Config";
 
 @Resolver()
 export class CalendarResolver {
@@ -131,5 +133,36 @@ export class CalendarResolver {
     const participants = await User.find({ where: { id: In(participantsById) } });
 
     return participants;
+  }
+
+  @Mutation(() => Boolean)
+  async deleteEvent(
+    @Arg('eventId') eventId: number
+  ) {
+    try {
+      await Event.delete({ id: eventId });
+      await EventParticipants.delete({ eventId: eventId });
+      await Notification.delete({ senderId: eventId, content: Like(`%${Config.EVENT_PREFIX}%`) });
+    } catch (error) {
+      throw new ApolloError('Something went wrong while processing removal request', 'CONTAC_REMOVAL_ERROR');
+      return false;
+    } finally {
+      return true;
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async leaveEvent(
+    @Arg('userId') userId: number,
+    @Arg('eventId') eventId: number,
+  ) {
+    try {
+      await EventParticipants.delete({ eventId: eventId, participantId: userId });
+    } catch (error) {
+      throw new ApolloError('Something went wrong while processing the notification', 'NOTIFICATION_DELETE_ERROR');
+      return false;
+    } finally {
+      return true
+    }
   }
 }

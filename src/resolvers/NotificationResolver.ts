@@ -1,12 +1,13 @@
 import { ApolloError } from "apollo-server-express";
-import { subscribe } from "graphql";
 import { PubSubEngine } from "graphql-subscriptions";
-import { Arg, Mutation, PubSub, Query, registerEnumType, Resolver, Root, Subscription } from "type-graphql";
+import { Arg, Mutation, PubSub, Query, Resolver, Root, Subscription } from "type-graphql";
 import { Like } from "typeorm";
 import Config from "../constants/Config";
 import { NotificationType } from "../enums/NotificationType";
 import { Contact } from "../models/Contact";
+import { EventParticipants } from "../models/EventParticipants";
 import { Notification } from "../models/Notification";
+import { Event } from "../models/Event"
 import { User } from "../models/User";
 
 @Resolver()
@@ -161,19 +162,87 @@ export class NotificationResolver {
   async inviteUsersForEvent(
     @Arg('userIds', type => [Number]) userIds: number[],
     @Arg('eventId') eventId: number,
-    @Arg('content') content: string
+    @Arg('content') content: string,
+    @PubSub() pubSub: PubSubEngine
   ) {
-    await userIds.forEach(async (id: number) => {
-      let newNotification = Notification.create()
+    let invitedCounter: number = 0; 
 
-      newNotification.type = NotificationType.INVITE;
-      newNotification.content = content;
-      newNotification.senderId = eventId;
-      newNotification.targetId = id;
+    const loopIds = new Promise(async (resolve, reject) => {
+      await userIds.forEach(async (id: number, index: number) => {
+        const invite = await Notification.find({ 
+          type: NotificationType.INVITE,
+          content: content,
+          senderId: eventId,
+          targetId: id
+        });
 
-      await newNotification.save();
+        if (!invite.length) {
+          let newNotification = Notification.create()
+    
+          newNotification.type = NotificationType.INVITE;
+          newNotification.content = content;
+          newNotification.senderId = eventId;
+          newNotification.targetId = id;
+    
+          await newNotification.save();
+        } else {
+          invitedCounter++;
+        }
+
+        if (index === userIds.length - 1) resolve(invitedCounter); 
+      });
     });
 
+    await loopIds;
+
+    const allNotifications = await Notification.find();
+
+    await pubSub.publish(Config.NOTIFICATION_ADDED, allNotifications);
+
+    if (invitedCounter > 0) throw new ApolloError('Some of these users are already invited!', 'SOME_ARE_INVITED');
+
     return true;
+  }
+
+  @Mutation(() => [Notification])
+  async acceptEventInvite(
+    @Arg('notificationId') notificationId: number,
+    @Arg('eventId') eventId: number,
+    @Arg('userId') userId: number,
+    @PubSub() pubSub: PubSubEngine
+  ) {
+    const checkParticipation = await EventParticipants.find({ participantId: userId, eventId: eventId });
+    if(!!checkParticipation.length) throw new ApolloError('this user is already participating in this event', 'USER_ALREADY_PARTICIPATING')
+
+    let newParticipant = EventParticipants.create();
+
+    newParticipant.eventId = eventId;
+    newParticipant.participantId = userId;
+
+    await newParticipant.save();
+
+    const event = await Event.findOne({ id: eventId });
+
+    let newNotification = Notification.create();
+
+    newNotification.type = NotificationType.NOTIFICATION;
+    newNotification.targetId = event!.ownerId;
+    newNotification.senderId = userId;
+    newNotification.content = 'User has accepted your event participation invite!'
+
+    await newNotification.save();
+
+    const allNotifications = await Notification.find();
+
+    await pubSub.publish(Config.NOTIFICATION_ADDED, allNotifications);
+
+    try {
+      await Notification.delete({ senderId: eventId, targetId: userId, id: notificationId });
+    } catch (error) {
+      throw new ApolloError('Something went wrong while processing the notification', 'NOTIFICATION_DELETE_ERROR');
+      return false;
+    } finally {
+      return await Notification.find({ targetId: userId });
+    }
   }
 }
