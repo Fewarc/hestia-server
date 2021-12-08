@@ -2,6 +2,7 @@ import { ApolloError } from "apollo-server-express";
 import { subscribe } from "graphql";
 import { PubSubEngine } from "graphql-subscriptions";
 import { Arg, Mutation, PubSub, Query, registerEnumType, Resolver, Root, Subscription } from "type-graphql";
+import { Like } from "typeorm";
 import Config from "../constants/Config";
 import { NotificationType } from "../enums/NotificationType";
 import { Contact } from "../models/Contact";
@@ -140,6 +141,39 @@ export class NotificationResolver {
   async getPendingInvites(
     @Arg('userId') userId: number
   ) {
-    return await Notification.find({ senderId: userId });
+    return await Notification.find({ where: [
+      { senderId: userId },
+      { content: Like(`%${Config.CONTACTS_PREFIX}%`) }
+    ] });
+  }
+
+  @Query(() => [Notification])
+  async getPendingEventInvites(
+    @Arg('eventId') eventId: number
+  ) {
+    return await Notification.find({ where: [
+      { senderId: eventId },
+      { content: Like(`%${Config.EVENT_PREFIX}%`) }
+    ] });
+  }
+
+  @Mutation(() => Boolean)
+  async inviteUsersForEvent(
+    @Arg('userIds', type => [Number]) userIds: number[],
+    @Arg('eventId') eventId: number,
+    @Arg('content') content: string
+  ) {
+    await userIds.forEach(async (id: number) => {
+      let newNotification = Notification.create()
+
+      newNotification.type = NotificationType.INVITE;
+      newNotification.content = content;
+      newNotification.senderId = eventId;
+      newNotification.targetId = id;
+
+      await newNotification.save();
+    });
+
+    return true;
   }
 }
