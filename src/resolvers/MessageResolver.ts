@@ -16,7 +16,7 @@ export class MessageResolver {
     return messagePayload.filter(message => (
       message.toId === firstUser && message.fromId === secondUser ||
       message.toId === secondUser && message.fromId === firstUser
-    )).sort((a: Message, b: Message) => ((a.sentAt < b.sentAt) ? -1 : ((a.sentAt > b.sentAt) ? 1 : 0)));
+    )).sort((a: Message, b: Message) => ((a.sentAt < b.sentAt) ? -1 : ((a.sentAt > b.sentAt) ? 1 : 0))).reverse();
   }
 
   @Mutation(() => Boolean)
@@ -51,6 +51,6 @@ export class MessageResolver {
       { fromId: secondUser, toId: firstUser }
     ] });
 
-    return messages.sort((a: Message, b: Message) => ((a.sentAt < b.sentAt) ? -1 : ((a.sentAt > b.sentAt) ? 1 : 0)));
+    return messages.sort((a: Message, b: Message) => ((a.sentAt < b.sentAt) ? -1 : ((a.sentAt > b.sentAt) ? 1 : 0))).reverse();
   }
 }
