@@ -3,7 +3,7 @@ import { Note } from "../models/Note";
 
 @Resolver()
 export class NoteResolver {
-  @Mutation(() => Boolean)
+  @Mutation(() => [Note])
   async saveNote(
     @Arg('userId') userId: number,
     @Arg('eventId') eventId: number,
@@ -24,7 +24,7 @@ export class NoteResolver {
       await newNote.save();
     }
 
-    return true;
+    return Note.find({ ownerId: userId });
   }
 
   @Query(() => Note)
