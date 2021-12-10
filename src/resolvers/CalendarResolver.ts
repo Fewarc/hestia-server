@@ -165,4 +165,14 @@ export class CalendarResolver {
       return true
     }
   }
+
+  @Query(() => [Event])
+  async getAllUserEvents(
+    @Arg('userId') userId: number
+  ) {
+    const eventIds = (await EventParticipants.find({ participantId: userId })).map(event => ({ id: event.eventId }));
+    return await Event.find({ where: [
+      ...eventIds
+    ] }); 
+  }
 }
