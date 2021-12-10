@@ -1,5 +1,6 @@
 import { ApolloError } from "apollo-server-express";
 import { Arg, Field, Mutation, PubSub, PubSubEngine, Query, Resolver } from "type-graphql";
+import { Like } from "typeorm";
 import Config from "../constants/Config";
 import { NotificationType } from "../enums/NotificationType";
 import { Contact } from "../models/Contact";
@@ -95,5 +96,30 @@ export class ContactResolver {
     } finally {
       return removedContactUser;
     }
+  }
+
+  @Query(() => [User])
+  async findUserContacts(
+    @Arg('searchValue') searchValue: string,
+    @Arg('userId') userId: number
+  ) {
+    const resultByLogin = await User.find({where: { login: Like(`%${searchValue}%`) }});
+    const resultByFirstName = await User.find({where: { firstName: Like(`%${searchValue}%`) }});
+    const resultByLastName = await User.find({where: { lastName: Like(`%${searchValue}%`) }});
+
+    const userContacts: Contact[] = await Contact.find({where: [
+      { userId: userId },
+      { contactId: userId }
+    ]});
+
+    return [ ...resultByLogin, ...resultByFirstName, ...resultByLastName ].filter(user => 
+      user.id !== userId).filter(user => userContacts.some(userContact => {
+        if (userContact.userId === userId) {
+          return user.id === userContact.contactId;
+        } else {
+          return user.id === userContact.userId;
+        }
+      })
+    );
   }
 }
