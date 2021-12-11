@@ -3,14 +3,10 @@ import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } 
 
 @Entity()
 @ObjectType()
-class Post extends BaseEntity {
+export class Post extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn({ type: 'int' })
   id!: number
-
-  // @Field(() => Int)
-  // @Column({ type: 'int', nullable: true })
-  // threadId: number
 
   @Field(() => Int, { nullable: true })
   @Column({ type: 'int', nullable: true })
@@ -22,11 +18,19 @@ class Post extends BaseEntity {
 
   @Field(() => String)
   @Column({ type: 'varchar', nullable: true })
-  content: string
+  title: string
+
+  @Field(() => String)
+  @Column({ type: 'varchar', nullable: true })
+  description: string
 
   @Field(() => Int)
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', nullable: true, default: 0 })
   upvotes: number
+
+  @Field(() => String)
+  @Column({ type: 'varchar', nullable: true })
+  tags: string
 
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })

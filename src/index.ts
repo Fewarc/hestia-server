@@ -17,6 +17,7 @@ import { CalendarResolver } from "./resolvers/CalendarResolver";
 import { ContactResolver } from "./resolvers/ContactResolver";
 import { MessageResolver } from "./resolvers/MessageResolver";
 import { NoteResolver } from "./resolvers/NoteResolver";
+import { PostResolver } from "./resolvers/PostResolver";
 
 (async function () {
   const PORT = 4000;
@@ -42,7 +43,8 @@ import { NoteResolver } from "./resolvers/NoteResolver";
       CalendarResolver,
       ContactResolver,
       MessageResolver,
-      NoteResolver
+      NoteResolver,
+      PostResolver
     ]
   });
   
