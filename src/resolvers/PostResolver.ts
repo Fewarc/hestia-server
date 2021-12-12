@@ -1,4 +1,4 @@
-import { Arg, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Int, Mutation, Query, Resolver } from "type-graphql";
 import { Like } from "typeorm";
 import { BlogPagePosts } from "../models/BlogPagePosts";
 import { Post } from "../models/Post";
@@ -11,15 +11,18 @@ export class PostResolver {
     @Arg('title') title: string,
     @Arg('content') description: string,
     @Arg('userId') userId: number,
-    @Arg('tags') tags: string
+    @Arg('tags') tags: string,
+    @Arg('postId', type => Int, { nullable: true }) postId: number | null,
+    @Arg('replyToId', type => Int, { nullable: true }) replyToId: number | null,
   ) {
     let newPost = Post.create();
 
-    newPost.replyToId = null;
     newPost.ownerId = userId;
     newPost.title = title;
     newPost.description = description;
     newPost.tags = tags;
+    if (postId) newPost.postId = postId;
+    if (replyToId) newPost.replyToId = replyToId;
 
     await newPost.save();
 
