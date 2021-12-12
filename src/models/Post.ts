@@ -12,6 +12,10 @@ export class Post extends BaseEntity {
   @Column({ type: 'int', nullable: true })
   replyToId: number | null
 
+  @Field(() => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true, default: null })
+  postId: number | null
+  
   @Field(() => Int)
   @Column({ type: 'int', nullable: true })
   ownerId: number
@@ -35,4 +39,7 @@ export class Post extends BaseEntity {
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })
   postedAt: Date
+
+  @Field(() => [Post])
+  comments: Post[]
 }

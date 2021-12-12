@@ -1,4 +1,5 @@
 import { Arg, Mutation, Query, Resolver } from "type-graphql";
+import { Like } from "typeorm";
 import { BlogPagePosts } from "../models/BlogPagePosts";
 import { Post } from "../models/Post";
 
@@ -31,11 +32,32 @@ export class PostResolver {
   ) {
     const userPosts = (await Post.find({ ownerId: userId, replyToId: null }));
     const allPosts = await Post.find();
-    const mostRecent = allPosts.sort((a: Post, b: Post) => a.postedAt.getTime() - b.postedAt.getTime()).slice(0, 5);
-    const mostUpvoted = allPosts.sort((a: Post, b: Post) => a.upvotes - b.upvotes).slice(0, 5);
+    const mostRecent = allPosts.sort((a: Post, b: Post) => b.postedAt.getTime() - a.postedAt.getTime()).slice(0, 5);
+    const mostUpvoted = allPosts.sort((a: Post, b: Post) => b.upvotes - a.upvotes).slice(0, 5);
 
     let blogPosts = new BlogPagePosts(userPosts, mostRecent, mostUpvoted);
 
     return blogPosts;
+  }
+
+  @Query(() => [Post])
+  async findPost(
+    @Arg('searchValue') searchValue: string
+  ) {
+    return await Post.find({where: [
+      { title: Like(`%${searchValue}%`) },
+      { description: Like(`%${searchValue}%`) },
+      { tags: Like(`%${searchValue}%`) },
+    ]});
+  }
+
+  @Query(() => Post)
+  async getPost(
+    @Arg('postId') postId: number
+  ) {
+    let post = await Post.findOne({ id: postId});
+    post!.comments = await Post.find({ postId: postId });
+
+    return post;
   }
 }
