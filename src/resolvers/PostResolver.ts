@@ -1,7 +1,9 @@
+import { ApolloError } from "apollo-server-express";
 import { Arg, Int, Mutation, Query, Resolver } from "type-graphql";
 import { Like } from "typeorm";
 import { BlogPagePosts } from "../models/BlogPagePosts";
 import { Post } from "../models/Post";
+import { UserUpvotes } from "../models/UserUpvotes";
 
 @Resolver()
 export class PostResolver {
@@ -33,8 +35,8 @@ export class PostResolver {
   async getBlogPagePosts(
     @Arg('userId') userId: number
   ) {
-    const userPosts = (await Post.find({ ownerId: userId, replyToId: null }));
-    const allPosts = await Post.find();
+    const userPosts = await Post.find({ ownerId: userId, replyToId: null, postId: null });
+    const allPosts = await Post.find({ replyToId: null, postId: null });
     const mostRecent = allPosts.sort((a: Post, b: Post) => b.postedAt.getTime() - a.postedAt.getTime()).slice(0, 5);
     const mostUpvoted = allPosts.sort((a: Post, b: Post) => b.upvotes - a.upvotes).slice(0, 5);
 
@@ -47,7 +49,7 @@ export class PostResolver {
   async findPost(
     @Arg('searchValue') searchValue: string
   ) {
-    return await Post.find({where: [
+    return await Post.find({ where: [
       { title: Like(`%${searchValue}%`) },
       { description: Like(`%${searchValue}%`) },
       { tags: Like(`%${searchValue}%`) },
@@ -62,5 +64,58 @@ export class PostResolver {
     post!.comments = await Post.find({ postId: postId });
 
     return post;
+  }
+
+  @Mutation(() => [String])
+  async upvotePost(
+    @Arg('postId') postId: number,
+    @Arg('userId') userId: number
+  ) {
+    let post = await Post.findOne({ id: postId });
+    post!.upvotes = post!.upvotes + 1;
+
+    const userUpvotes = await UserUpvotes.findOne({ userId: userId, postId: postId });
+    if (userUpvotes) {
+      throw new ApolloError('No upvote found', 'NO_UPVOTE')
+    } else {
+      let newUserUpvote = UserUpvotes.create();
+
+      newUserUpvote.userId = userId;
+      newUserUpvote.postId = postId;
+
+      await newUserUpvote.save();
+      await post?.save();
+
+      const allUserUpvoteIds: string[] = await (await UserUpvotes.find({ userId: userId })).map(upvote => upvote.postId.toString());
+
+      return allUserUpvoteIds;
+    }
+  }
+
+  @Mutation(() => [String])
+  async downvotePost(
+    @Arg('postId') postId: number,
+    @Arg('userId') userId: number
+  ) {
+    let post = await Post.findOne({ id: postId });
+    
+    post!.upvotes = post!.upvotes - 1;
+
+    await post?.save();
+
+    let userUpvote = await UserUpvotes.findOne({ userId: userId, postId: postId });
+
+    if (userUpvote) UserUpvotes.delete({ userId: userId, postId: postId }); 
+
+    const allUserUpvoteIds: string[] = await (await UserUpvotes.find({ userId: userId })).map(upvote => upvote.postId.toString());
+
+    return allUserUpvoteIds;
+  }
+
+  @Query(() => [String])
+  async getUserUpvotes(
+    @Arg('userId') userId: number
+  ) {
+    return await (await UserUpvotes.find({ userId: userId })).map(upvote => upvote.postId.toString());
   }
 }
