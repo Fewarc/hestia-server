@@ -72,7 +72,7 @@ export class PostResolver {
     @Arg('userId') userId: number
   ) {
     let post = await Post.findOne({ id: postId });
-    post!.upvotes = post!.upvotes + 1;
+    post!.upvotes++;
 
     const userUpvotes = await UserUpvotes.findOne({ userId: userId, postId: postId });
     if (userUpvotes) {
@@ -92,14 +92,14 @@ export class PostResolver {
     }
   }
 
-  @Mutation(() => [String])
+  @Mutation(() => [Int])
   async downvotePost(
     @Arg('postId') postId: number,
     @Arg('userId') userId: number
   ) {
     let post = await Post.findOne({ id: postId });
     
-    post!.upvotes = post!.upvotes - 1;
+    post!.upvotes--;
 
     await post?.save();
 
@@ -112,10 +112,10 @@ export class PostResolver {
     return allUserUpvoteIds;
   }
 
-  @Query(() => [String])
+  @Query(() => [Int])
   async getUserUpvotes(
     @Arg('userId') userId: number
   ) {
-    return await (await UserUpvotes.find({ userId: userId })).map(upvote => upvote.postId.toString());
+    return await (await UserUpvotes.find({ userId: userId })).map(upvote => upvote.postId);
   }
 }
