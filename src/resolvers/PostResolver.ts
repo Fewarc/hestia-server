@@ -61,7 +61,7 @@ export class PostResolver {
     @Arg('postId') postId: number
   ) {
     let post = await Post.findOne({ id: postId});
-    post!.comments = await (await Post.find({ postId: postId })).sort((a: Post, b: Post) => b.postedAt.getTime() - a.postedAt.getTime());
+    post!.comments = await (await Post.find({ postId: postId })).sort((a: Post, b: Post) => a.postedAt.getTime() - b.postedAt.getTime());
 
     return post;
   }
