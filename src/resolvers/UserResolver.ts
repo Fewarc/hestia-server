@@ -84,4 +84,22 @@ export class UserResolver {
       })
     );
   }
+
+  @Mutation(() => User)
+  async updateUserData(
+    @Arg('userId') userId: number,
+    @Arg('firstName') firstName: string,
+    @Arg('lastName') lastName: string,
+    @Arg('age') age: number,
+  ) {
+    let user = await User.findOne({ id: userId });
+
+    user!.firstName = firstName;
+    user!.lastName = lastName;
+    user!.age = age;
+
+    await user?.save();
+
+    return user;
+  }
 }

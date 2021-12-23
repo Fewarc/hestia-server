@@ -27,6 +27,13 @@ export class CalendarResolver {
 
     await newEvent.save();
 
+    let newParticipant = EventParticipants.create();
+
+    newParticipant.eventId = newEvent.id;
+    newParticipant.participantId = newEvent.ownerId;
+
+    await newParticipant.save();
+
     const createdEventDate = new Date(
       eventOccurance.getFullYear(), 
       eventOccurance.getMonth(), 
@@ -35,7 +42,7 @@ export class CalendarResolver {
 
     let events: Event[] = await Event.find();
 
-    return events.filter((event: Event, index) => {
+    return events.filter((event: Event) => {
       const eventDate = new Date(
         event.eventOccuranceDate.getFullYear(),
         event.eventOccuranceDate.getMonth(),
@@ -90,7 +97,7 @@ export class CalendarResolver {
     newParticipant.eventId = eventId;
     newParticipant.participantId = userId;
 
-    await newParticipant.save()
+    await newParticipant.save();
 
     const event = await Event.findOne({ id: eventId });
 
@@ -171,8 +178,13 @@ export class CalendarResolver {
     @Arg('userId') userId: number
   ) {
     const eventIds = (await EventParticipants.find({ participantId: userId })).map(event => ({ id: event.eventId }));
-    return await Event.find({ where: [
-      ...eventIds
-    ] }); 
+    
+    if (!eventIds.length) {
+      return [];
+    } else {
+      return await Event.find({ where: [
+        ...eventIds
+      ] }); 
+    }
   }
 }
