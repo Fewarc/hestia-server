@@ -57,6 +57,7 @@ export class UserResolver {
     newUser.role = role;
 
     await newUser.save();
+    
     return true;
   }
 
@@ -85,7 +86,7 @@ export class UserResolver {
     );
   }
 
-  @Mutation(() => User)
+  @Mutation(() => String)
   async updateUserData(
     @Arg('userId') userId: number,
     @Arg('firstName') firstName: string,
@@ -100,6 +101,14 @@ export class UserResolver {
 
     await user?.save();
 
-    return user;
+    return jwt.sign(
+      {user},
+      process.env.JWT_SECRET as Secret,
+      {
+        algorithm: 'HS256',
+        subject: user!.id.toString(),
+        expiresIn: process.env.JWT_DURATION
+      }
+    );
   }
 }
