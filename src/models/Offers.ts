@@ -2,6 +2,7 @@ import { Field, Float, ID, Int, ObjectType } from "type-graphql";
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OfferCategory } from "../enums/OfferCategory";
 import { OfferType } from "../enums/OfferType";
+import { Photo } from "./Photo";
 
 @Entity()
 @ObjectType()
@@ -86,5 +87,8 @@ export class Offer extends BaseEntity {
   @Field(() => Date)
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date
+
+  @Field(() => [Photo])
+  photos: Photo[]
 
 }

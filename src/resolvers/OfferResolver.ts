@@ -100,12 +100,21 @@ export class OfferResolver {
   }
 
   @Query(() => [Offer])
-  async getOffers(
-    
-  ) {
+  async getOffers() {
     const offers = await Offer.find();
 
     return offers;
   }
 
+  @Query(() => Offer)
+  async getOfferDetails(
+    @Arg('offerId') offerId: number
+  ) {
+    let offer = await Offer.findOne({ id: offerId });
+    const photos = await Photo.find({ offerId: offerId });
+
+    offer!.photos = photos;
+
+    return offer;
+  }
 }
