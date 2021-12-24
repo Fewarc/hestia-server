@@ -91,12 +91,14 @@ export class UserResolver {
     @Arg('userId') userId: number,
     @Arg('firstName') firstName: string,
     @Arg('lastName') lastName: string,
+    @Arg('email') email: string,
     @Arg('age') age: number,
   ) {
     let user = await User.findOne({ id: userId });
 
     user!.firstName = firstName;
     user!.lastName = lastName;
+    user!.email = email;
     user!.age = age;
 
     await user?.save();
