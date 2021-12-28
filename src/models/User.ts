@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from "type-graphql";
+import { Field, Float, ID, Int, ObjectType } from "type-graphql";
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { UserRole } from "../enums/UserRole";
 import { Notification } from "./Notification";
@@ -36,9 +36,17 @@ export class User extends BaseEntity {
   lastName: string
 
   @Field(() => String, { nullable: true })
-  @Column('varchar', { length: 100, nullable: true }) // TODO: Coordinates table
-  coordinates: string
+  @Column('varchar', { length: 100, nullable: true })
+  address: string
   
+  @Field(() => Float, { nullable: true })
+  @Column({ type: 'float', nullable: true, default: null})
+  lat: number
+  
+  @Field(() => Float, { nullable: true })
+  @Column({ type: 'float', nullable: true, default: null})
+  lng: number
+
   @Field(() => Int, { nullable: true })
   @Column({ type: 'int', nullable: true })
   age: number
@@ -62,10 +70,6 @@ export class User extends BaseEntity {
   @Field(() => Date)
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date
-
-  // @Field()
-  // @Column()
-  // profilePicture: 
 
   @OneToMany(() => Notification, notification => notification.targetId)
   notification: Notification[]

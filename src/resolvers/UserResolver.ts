@@ -93,6 +93,9 @@ export class UserResolver {
     @Arg('lastName') lastName: string,
     @Arg('email') email: string,
     @Arg('age') age: number,
+    @Arg('address') address: string,
+    @Arg('lat') lat: number,
+    @Arg('lng') lng: number,
   ) {
     let user = await User.findOne({ id: userId });
 
@@ -100,6 +103,9 @@ export class UserResolver {
     user!.lastName = lastName;
     user!.email = email;
     user!.age = age;
+    user!.address = address;
+    user!.lat = lat;
+    user!.lng = lng;
 
     await user?.save();
 
