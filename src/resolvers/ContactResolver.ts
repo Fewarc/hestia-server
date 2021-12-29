@@ -6,6 +6,7 @@ import { NotificationType } from "../enums/NotificationType";
 import { Contact } from "../models/Contact";
 import { Notification } from "../models/Notification";
 import { User } from "../models/User";
+import { uniqBy } from "../utils/arrayUtils";
 
 @Resolver()
 export class ContactResolver {
@@ -112,8 +113,10 @@ export class ContactResolver {
       { contactId: userId }
     ]});
 
-    return [ ...resultByLogin, ...resultByFirstName, ...resultByLastName ].filter(user => 
-      user.id !== userId).filter(user => userContacts.some(userContact => {
+    const users = uniqBy([ ...resultByLogin, ...resultByFirstName, ...resultByLastName ], JSON.stringify);
+
+    return users.filter((user: User) => 
+      user.id !== userId).filter((user: User) => userContacts.some(userContact => {
         if (userContact.userId === userId) {
           return user.id === userContact.contactId;
         } else {
