@@ -3,6 +3,7 @@ import { Arg, Field, Mutation, PubSub, PubSubEngine, Query, Resolver } from "typ
 import { Like } from "typeorm";
 import Config from "../constants/Config";
 import { NotificationType } from "../enums/NotificationType";
+import { Client } from "../models/Client";
 import { Contact } from "../models/Contact";
 import { Notification } from "../models/Notification";
 import { User } from "../models/User";
@@ -124,5 +125,52 @@ export class ContactResolver {
         }
       })
     );
+  }
+
+  @Mutation(() => Boolean)
+  async addAsClient(
+    @Arg('agentId') agentId: number,
+    @Arg('clientId') clientId: number,
+  ) {
+    let newClient = Client.create();
+
+    newClient.agentId = agentId;
+    newClient.clientId = clientId;
+
+    await newClient.save();
+
+    return true;
+  }
+
+  @Mutation(() => Boolean)
+  async removeClient(
+    @Arg('agentId') agentId: number,
+    @Arg('clientId') clientId: number,
+  ) {
+    const client = await Client.findOne({ agentId: agentId, clientId: clientId });
+
+    if (!client) throw new ApolloError("Couldn't find contact", 'NO_CONTACT_FOUND');
+
+    try {
+      await Client.delete({ agentId: agentId, clientId: clientId });
+    } catch (error) {
+      throw new ApolloError('Something went wrong while processing removal request', 'CONTAC_REMOVAL_ERROR');
+      return false;
+    } finally {
+      return true;
+    }
+  }
+
+  @Query(() => [User])
+  async getUserClients(
+    @Arg('agentId') agentId: number
+  ) {
+    const clients = await (await Client.find({ agentId: agentId })).map(client => ({ id: client.clientId }));
+
+    if (!clients.length) return [];
+
+    return await User.find({where: [
+      ...clients
+    ]})
   }
 }

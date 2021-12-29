@@ -26,7 +26,7 @@ export class User extends BaseEntity {
     nullable: true,
     transformer: new EncryptionTransformer(MyEncryptionTransformerConfig)
   })
-  password: string // TODO: hashed
+  password: string
 
   @Field(() => UserRole)
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
