@@ -90,9 +90,9 @@ export class UserResolver {
   async updateUserData(
     @Arg('userId') userId: number,
     @Arg('firstName') firstName: string,
-    @Arg('lastName') lastName: string,
+    @Arg('lastName', { nullable: true }) lastName: string,
     @Arg('email') email: string,
-    @Arg('age') age: number,
+    @Arg('age', { nullable: true }) age: number,
     @Arg('address') address: string,
     @Arg('lat') lat: number,
     @Arg('lng') lng: number,

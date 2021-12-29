@@ -1,6 +1,8 @@
 import { Field, Float, ID, Int, ObjectType } from "type-graphql";
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { EncryptionTransformer } from "typeorm-encrypted";
 import { UserRole } from "../enums/UserRole";
+import { MyEncryptionTransformerConfig } from "../utils/encryptionUtils";
 import { Notification } from "./Notification";
 
 @Entity()
@@ -19,8 +21,11 @@ export class User extends BaseEntity {
   @Column('varchar', { length: 30, nullable: true })
   email: string
 
-  @Field(() => String, { nullable: true })
-  @Column('varchar', { length: 20, nullable: true })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    transformer: new EncryptionTransformer(MyEncryptionTransformerConfig)
+  })
   password: string // TODO: hashed
 
   @Field(() => UserRole)
@@ -28,7 +33,7 @@ export class User extends BaseEntity {
   role: UserRole
 
   @Field(() => String, { nullable: true })
-  @Column('varchar', { length: 20, nullable: true })
+  @Column('varchar', { length: 100, nullable: true })
   firstName: string
 
   @Field(() => String, { nullable: true })
