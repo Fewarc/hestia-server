@@ -1,13 +1,16 @@
 import { ApolloError } from "apollo-server-express";
-import { Arg, Field, Mutation, PubSub, PubSubEngine, Query, Resolver } from "type-graphql";
+import { Arg, Int, Mutation, PubSub, PubSubEngine, Query, Resolver } from "type-graphql";
 import { Like } from "typeorm";
 import Config from "../constants/Config";
 import { NotificationType } from "../enums/NotificationType";
 import { Client } from "../models/Client";
+import { ClientEvents } from "../models/ClientEvents";
 import { Contact } from "../models/Contact";
+import { EventParticipants } from "../models/EventParticipants";
 import { Notification } from "../models/Notification";
 import { User } from "../models/User";
 import { uniqBy } from "../utils/arrayUtils";
+import { Event } from "../models/Event";
 
 @Resolver()
 export class ContactResolver {
@@ -172,5 +175,54 @@ export class ContactResolver {
     return await User.find({where: [
       ...clients
     ]})
+  }
+
+  @Query(() => Int)
+  async getSaleLevel(
+    @Arg('clientId') clientId: number
+  ) {
+    const client = await Client.findOne({ clientId: clientId });
+
+    return client!.saleLevel;
+  }
+
+  @Mutation(() => Boolean)
+  async updateSaleLevel(
+    @Arg('agentId') agentId: number,
+    @Arg('clientId') clientId: number,
+    @Arg('saleLevel') saleLevel: number
+  ) {
+    let client = await Client.findOne({ agentId: agentId, clientId: clientId });
+
+    client!.saleLevel = saleLevel;
+
+    await client?.save();
+
+    return true;
+  }
+
+  @Query(() => ClientEvents)
+  async getClientEvents(
+    @Arg('agentId') agentId: number,
+    @Arg('clientId') clientId: number,
+  ) {
+    const clientParticipations = await (await EventParticipants.find({ participantId: clientId })).map(participation => ({ id: participation.eventId }));
+    const clientEvents = await Event.find({ where: [
+      ...clientParticipations
+    ] }); 
+
+    const agentParticipations = await (await EventParticipants.find({ participantId: agentId })).map(participation => ({ id: participation.eventId }));
+    const agentEvents = await Event.find({ where: [
+      ...agentParticipations
+    ] }); 
+
+    const sharedEvents = clientEvents.filter(event => agentEvents.some(agentEvent => agentEvent.id === event.id));
+
+    const today = new Date();
+
+    const pastEvents = sharedEvents.filter(event => event.eventOccuranceDate < today);
+    const futureEvents = sharedEvents.filter(event => event.eventOccuranceDate > today);
+    
+    return new ClientEvents(pastEvents, futureEvents);
   }
 }
