@@ -5,6 +5,7 @@ import { OfferCategory } from "../enums/OfferCategory";
 import { OfferType } from "../enums/OfferType";
 import { Offer } from "../models/Offers";
 import { Photo } from "../models/Photo";
+import { Between, LessThanOrEqual, Like, MoreThan, MoreThanOrEqual } from "typeorm";
 
 const storage = new Storage({ keyFilename: process.env.GOOGLE_STORAGE_API_KEY_PATH as string })
 const bucketName = process.env.BUCKET_NAME as string;
@@ -100,10 +101,58 @@ export class OfferResolver {
   }
 
   @Query(() => [Offer])
-  async getOffers() {
-    const offers = await Offer.find();
+  async getOffers(
+    @Arg('content', { nullable: true }) content: string,
+    @Arg('priceLow', { nullable: true }) priceLow: number,
+    @Arg('priceHigh', { nullable: true }) priceHigh: number,
+    @Arg('areaLow', { nullable: true }) areaLow: number,
+    @Arg('areaHigh', { nullable: true }) areaHigh: number,
+    @Arg('offerType', { nullable: true }) offerType: string,
+    @Arg('category', { nullable: true }) category: string,
+    @Arg('furnished', { nullable: true }) furnished: boolean,
+    @Arg('negotiable', { nullable: true }) negotiable: boolean,
+    @Arg('numberOfRooms', { nullable: true }) numberOfRooms: number,
+    @Arg('address', { nullable: true }) address: string,
+  ) {
+    const offers = await Offer.find({where: [
+      {
+        title: Like(`%${content || ''}%`),
+        price: ((!priceLow && !priceHigh) ? MoreThan(0) : (!!priceLow && !!priceHigh) ? Between(priceLow, priceHigh) : ((!!priceLow) ? MoreThanOrEqual(priceLow) : LessThanOrEqual(priceHigh))),
+        area: ((!areaLow && !areaHigh) ? MoreThan(0) : (!!areaLow && !!areaHigh) ? Between(areaLow, areaHigh) : ((!!areaLow) ? MoreThanOrEqual(areaLow) : LessThanOrEqual(areaHigh))),
+        numberOfRooms: MoreThanOrEqual(numberOfRooms || 0),
+        address: Like(`%${address || ''}%`)
+      }
+    ]});
 
-    return offers;
+    let filteredOffers = offers.filter((offer: Offer) => {
+      if (!offerType && !category) return true;
+
+      if (!!offerType && !!category) {
+        return (offer.offerType === offerType && offer.category === category)
+      } else {
+        if (!!offerType) {
+          return offer.offerType === offerType;
+        } else {
+          return offer.category === category;
+        }
+      }
+    });
+
+    filteredOffers.filter((offer: Offer) => {
+      if (furnished === null && negotiable === null) return true;
+
+      if (!!furnished && !!negotiable) {
+        return (offer.furnished === furnished && offer.negotiable === negotiable)
+      } else {
+        if (!!furnished) {
+          return offer.furnished === furnished;
+        } else {
+          return offer.negotiable === negotiable;
+        }
+      }
+    });
+
+    return filteredOffers;
   }
 
   @Query(() => Offer)
