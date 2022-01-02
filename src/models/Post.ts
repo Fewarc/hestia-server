@@ -20,6 +20,10 @@ export class Post extends BaseEntity {
   @Column({ type: 'int', nullable: true })
   ownerId: number
 
+  @Field(() => String, { nullable: true })
+  @Column({ type: 'varchar', nullable: true })
+  ownerUsername: string | null
+  
   @Field(() => String)
   @Column({ type: 'varchar', nullable: true })
   title: string
@@ -39,6 +43,10 @@ export class Post extends BaseEntity {
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })
   postedAt: Date
+
+  @Field(() => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true, default: null })
+  relatedOffer: number | null
 
   @Field(() => [Post])
   comments: Post[]

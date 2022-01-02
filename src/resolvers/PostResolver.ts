@@ -3,6 +3,7 @@ import { Arg, Int, Mutation, Query, Resolver } from "type-graphql";
 import { Like } from "typeorm";
 import { BlogPagePosts } from "../models/BlogPagePosts";
 import { Post } from "../models/Post";
+import { User } from "../models/User";
 import { UserUpvotes } from "../models/UserUpvotes";
 
 @Resolver()
@@ -16,13 +17,16 @@ export class PostResolver {
     @Arg('tags') tags: string,
     @Arg('postId', type => Int, { nullable: true }) postId: number | null,
     @Arg('replyToId', type => Int, { nullable: true }) replyToId: number | null,
+    @Arg('relatedOffer', type => Int, { nullable: true }) relatedOffer: number | null
   ) {
     let newPost = Post.create();
 
     newPost.ownerId = userId;
+    newPost.ownerUsername = (await User.findOne({ id: userId }))!.login;
     newPost.title = title;
     newPost.description = description;
     newPost.tags = tags;
+    if (relatedOffer) newPost.relatedOffer = relatedOffer; 
     if (postId) newPost.postId = postId;
     if (replyToId) newPost.replyToId = replyToId;
 
@@ -117,5 +121,14 @@ export class PostResolver {
     @Arg('userId') userId: number
   ) {
     return await (await UserUpvotes.find({ userId: userId })).map(upvote => upvote.postId);
+  }
+
+  @Query(() => [Post])
+  async getOfferRelatedPosts(
+    @Arg('offerId') offerId: number
+  ) {
+    const posts = await Post.find({ relatedOffer: offerId });
+
+    return posts;
   }
 }

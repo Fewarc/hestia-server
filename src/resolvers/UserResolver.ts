@@ -5,6 +5,7 @@ import { User } from "../models/User";
 import jwt, { Secret } from "jsonwebtoken"
 import { Like } from "typeorm";
 import { Contact } from "../models/Contact";
+import Config from "../constants/Config";
 
 @Resolver()
 export class UserResolver {
@@ -53,7 +54,7 @@ export class UserResolver {
 
     newUser.login = login;
     newUser.email = email;
-    newUser.password = password; // TODO: hash the password !
+    newUser.password = password;
     newUser.role = role;
 
     await newUser.save();
@@ -118,5 +119,32 @@ export class UserResolver {
         expiresIn: process.env.JWT_DURATION
       }
     );
+  }
+
+  @Query(() => [User])
+  async getAgencies(
+    @Arg('searchPhrase') searchPhrase: string
+  ) {
+    const agencies = User.find({where: [
+      { 
+        role: UserRole.AGENCY,
+        firstName: Like(`%${searchPhrase}%`)
+      },
+      { 
+        role: UserRole.AGENCY,
+        address: Like(`%${searchPhrase}%`)
+      }
+    ]});
+
+    return (await agencies).filter(agency => !!agency.address);
+  }
+
+  @Query(() => User)
+  async getAgencyDetails(
+    @Arg('agencyId') agencyId: number
+  ) {
+    const agency = await User.findOne({ id: agencyId });
+
+    return agency;
   }
 }
