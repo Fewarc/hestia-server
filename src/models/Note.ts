@@ -1,9 +1,12 @@
 import { Field, ID, Int, ObjectType } from "type-graphql";
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { EncryptionTransformer } from "typeorm-encrypted";
+import { MyEncryptionTransformerConfig } from "../utils/encryptionUtils";
 
 @Entity()
 @ObjectType()
 export class Note extends BaseEntity {
+  
   @Field(() => ID)
   @PrimaryGeneratedColumn({ type: 'int' })
   id!: number
@@ -17,7 +20,11 @@ export class Note extends BaseEntity {
   ownerId: number
 
   @Field(() => String)
-  @Column({ type: 'varchar', nullable: true })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    transformer: new EncryptionTransformer(MyEncryptionTransformerConfig)
+  })
   content: string
 
   @Field(() => Date)

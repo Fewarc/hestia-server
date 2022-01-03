@@ -28,9 +28,13 @@ export class Offer extends BaseEntity {
   @Column({ type: 'int', nullable: true, default: 0 })
   ownerId: number
 
-  // @Field()
-  // @Column()        TODO
-  // agency
+  @Field(() => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true, default: null })
+  agencyId: number
+
+  @Field(() => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true, default: null })
+  agentId: number
 
   @Field(() => OfferCategory)
   @Column({ type: 'enum', enum: OfferCategory, default: OfferCategory.RESIDENTIAL })

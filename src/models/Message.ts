@@ -1,5 +1,7 @@
 import { Field, ID, Int, ObjectType } from "type-graphql";
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { EncryptionTransformer } from "typeorm-encrypted";
+import { MyEncryptionTransformerConfig } from "../utils/encryptionUtils";
 
 @Entity()
 @ObjectType()
@@ -17,12 +19,12 @@ export class Message extends BaseEntity {
   fromId: number
 
   @Field(() => String)
-  @Column({ type: 'varchar', nullable: true })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    transformer: new EncryptionTransformer(MyEncryptionTransformerConfig)
+  })
   content: string
-
-  // @Field()
-  // @Column()
-  // attachment: ?
 
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })
