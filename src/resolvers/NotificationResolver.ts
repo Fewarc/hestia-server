@@ -167,7 +167,7 @@ export class NotificationResolver {
   ) {
     let invitedCounter: number = 0; 
 
-    const loopIds = new Promise(async (resolve, reject) => {
+    const loopIds = new Promise(async (resolve, _reject) => {
       await userIds.forEach(async (id: number, index: number) => {
         const invite = await Notification.find({ 
           type: NotificationType.INVITE,
@@ -189,7 +189,7 @@ export class NotificationResolver {
           invitedCounter++;
         }
 
-        if (index === userIds.length - 1) resolve(invitedCounter); 
+        if (index === userIds.length - 1) resolve(invitedCounter);
       });
     });
 
@@ -243,6 +243,42 @@ export class NotificationResolver {
       return false;
     } finally {
       return await Notification.find({ targetId: userId });
+    }
+  }
+
+  @Mutation(() => [Notification])
+  async acceptAgencyInvite(
+    @Arg('notificationId') notificationId: number,
+    @Arg('agencyId') agencyId: number,
+    @Arg('agentId') agentId: number,
+    @PubSub() pubSub: PubSubEngine
+  ) {
+    let agent = await User.findOne({ id: agentId });
+
+    agent!.agencyId = agencyId;
+
+    await agent?.save();
+
+    let newNotification = Notification.create();
+
+    newNotification.type = NotificationType.NOTIFICATION;
+    newNotification.targetId = agencyId;
+    newNotification.senderId = agentId;
+    newNotification.content = 'User has accepted your agency invite!'
+
+    await newNotification.save();
+
+    const allNotifications = await Notification.find();
+
+    await pubSub.publish(Config.NOTIFICATION_ADDED, allNotifications);
+
+    try {
+      await Notification.delete({ senderId: agencyId, targetId: agentId, id: notificationId });
+    } catch (error) {
+      throw new ApolloError('Something went wrong while processing the notification', 'NOTIFICATION_DELETE_ERROR');
+      return false;
+    } finally {
+      return await Notification.find({ targetId: agentId });
     }
   }
 }

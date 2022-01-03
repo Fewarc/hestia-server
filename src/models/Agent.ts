@@ -4,6 +4,12 @@ import { User } from "./User";
 @ObjectType()
 export class Agent {
 
+  constructor(agent: User, saleLevel: number[], totalClients: number) {
+    this.agent = agent;
+    this.saleLevels = saleLevel;
+    this.totalClients = totalClients;
+  }
+
   @Field(() => User)
   agent: User
 
@@ -11,5 +17,5 @@ export class Agent {
   saleLevels: number[]
   
   @Field(() => Int)
-  totalCLients: number
+  totalClients: number
 }

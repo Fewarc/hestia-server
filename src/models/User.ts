@@ -76,6 +76,10 @@ export class User extends BaseEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date
 
+  @Field(() => Date)
+  @Column({ type: 'timestamptz', nullable: true, default: new Date() })
+  lastLogIn: Date
+
   @OneToMany(() => Notification, notification => notification.targetId)
   notification: Notification[]
 }

@@ -1,12 +1,13 @@
 import { ApolloError } from "apollo-server-errors";
-import { Arg, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, emitSchemaDefinitionFile, Mutation, Query, Resolver } from "type-graphql";
 import { UserRole } from "../enums/UserRole";
 import { User } from "../models/User";
 import jwt, { Secret } from "jsonwebtoken"
 import { Like } from "typeorm";
 import { Contact } from "../models/Contact";
 import Config from "../constants/Config";
-import { Agent } from "http";
+import { Agent } from "../models/Agent";
+import { Client } from "../models/Client";
 
 @Resolver()
 export class UserResolver {
@@ -24,9 +25,13 @@ export class UserResolver {
 
     if(!users.some(user => user.login === login)) throw new ApolloError('user does not exist', 'USER_DOESNT_EXIST');
 
-    const user = users.find(user => user.login === login);
+    let user = users.find(user => user.login === login);
 
     if(user?.password !== password) throw new ApolloError('wrong password', 'WRONG_PASSWORD');
+
+    user.lastLogIn = new Date();
+
+    await user.save();
 
     return jwt.sign(
       {user},
@@ -149,7 +154,7 @@ export class UserResolver {
     return agency;
   }
 
-  @Query(() => [Agent]) // TODO
+  @Query(() => [User])
   async findAgents(
     @Arg('searchPhrase') searchPhrase: string
   ) {
@@ -169,5 +174,26 @@ export class UserResolver {
     ]});
 
     return agents;
+  }
+
+  @Query(() => [Agent])
+  async getAgnecyAgents(
+    @Arg('agencyId') agencyId: number
+  ) {
+    let agents = await User.find({ agencyId });
+    let retAgents = await Promise.all(agents.map(async (agent: User) => {
+
+      let saleLevels: number[] = new Array(6).fill(0);
+
+      const clients = await Client.find({ agentId: agent.id });
+
+      clients.forEach((client: Client) => {
+        saleLevels[client.saleLevel]++;
+      });
+
+      return new Agent(agent, saleLevels, clients.length);
+    }));
+    
+    return retAgents;
   }
 }
