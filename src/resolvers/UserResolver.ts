@@ -6,6 +6,7 @@ import jwt, { Secret } from "jsonwebtoken"
 import { Like } from "typeorm";
 import { Contact } from "../models/Contact";
 import Config from "../constants/Config";
+import { Agent } from "http";
 
 @Resolver()
 export class UserResolver {
@@ -146,5 +147,27 @@ export class UserResolver {
     const agency = await User.findOne({ id: agencyId });
 
     return agency;
+  }
+
+  @Query(() => [Agent]) // TODO
+  async findAgents(
+    @Arg('searchPhrase') searchPhrase: string
+  ) {
+    const agents = await User.find({where: [
+      {
+        role: UserRole.AGENT,
+        login: Like(`%${searchPhrase}%`)
+      },
+      {
+        role: UserRole.AGENT,
+        firstName: Like(`%${searchPhrase}%`)
+      },
+      {
+        role: UserRole.AGENT,
+        lastName: Like(`%${searchPhrase}%`)
+      },
+    ]});
+
+    return agents;
   }
 }
