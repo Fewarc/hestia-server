@@ -29,7 +29,9 @@ export class OfferResolver {
     @Arg('address') address: string,
     @Arg('lat') lat: number,
     @Arg('lng') lng: number,
-    @Arg('files', () => [GraphQLUpload], { nullable: true }) files: FileUpload[]
+    @Arg('files', () => [GraphQLUpload], { nullable: true }) files: FileUpload[],
+    @Arg('agencyId', { nullable: true }) agencyId: number,
+    @Arg('agentId', { nullable: true }) agentId: number,
   ) {
     let newOffer = Offer.create();
 
@@ -48,6 +50,8 @@ export class OfferResolver {
     newOffer.address = address;
     newOffer.lat = lat;
     newOffer.lng = lng;
+    if (agencyId) newOffer.agencyId = agencyId;
+    if (agentId) newOffer.agentId = agentId;
 
     await newOffer.save();
 

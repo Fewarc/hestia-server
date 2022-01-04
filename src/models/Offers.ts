@@ -80,7 +80,7 @@ export class Offer extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   lng: number
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @Column({ type: 'varchar', nullable: true })
   uploads: string
 

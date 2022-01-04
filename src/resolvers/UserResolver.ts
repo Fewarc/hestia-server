@@ -33,6 +33,8 @@ export class UserResolver {
 
     await user.save();
 
+    delete user.password;
+
     return jwt.sign(
       {user},
       process.env.JWT_SECRET as Secret,
