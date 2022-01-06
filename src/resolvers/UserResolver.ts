@@ -8,6 +8,11 @@ import { Contact } from "../models/Contact";
 import Config from "../constants/Config";
 import { Agent } from "../models/Agent";
 import { Client } from "../models/Client";
+import { AgencyStats } from "../models/AgencyStats";
+import { Message } from "../models/Message";
+import { EventParticipants } from "../models/EventParticipants";
+import { Offer } from "../models/Offers";
+import { OfferCategory } from "../enums/OfferCategory";
 
 @Resolver()
 export class UserResolver {
@@ -185,17 +190,78 @@ export class UserResolver {
     let agents = await User.find({ agencyId });
     let retAgents = await Promise.all(agents.map(async (agent: User) => {
 
-      let saleLevels: number[] = new Array(6).fill(0);
+    let saleLevels: number[] = new Array(6).fill(0);
 
-      const clients = await Client.find({ agentId: agent.id });
+    const clients = await Client.find({ agentId: agent.id });
 
-      clients.forEach((client: Client) => {
-        saleLevels[client.saleLevel]++;
-      });
+    clients.forEach((client: Client) => {
+      saleLevels[client.saleLevel]++;
+    });
 
       return new Agent(agent, saleLevels, clients.length);
     }));
     
     return retAgents;
+  }
+
+  @Query(() => AgencyStats)
+  async getAgencyStats(
+    @Arg('agencyId') agencyId: number 
+  ) {
+    const agentsIds = await (await User.find({ role: UserRole.AGENT, agencyId: agencyId }));
+
+    const clients = await Client.find({where: [
+       ...agentsIds.map((agent: User) => ({ agentId: agent.id })) 
+    ]});
+
+    let sales: number[] = new Array(6).fill(0);
+
+    clients.forEach((client: Client) => {
+      sales[client.saleLevel]++;
+    });
+    
+    const messages: number = (await Message.find({where: [
+      ...agentsIds.map((agent: User) => ({ fromId: agent.id })) 
+    ]})).length;
+
+    const meetings: number = (await EventParticipants.find({where: [
+      ...agentsIds.map((agent: User) => ({ participantId: agent.id })) 
+    ]})).length;
+
+    const offers: number = (await Offer.find({agencyId: agencyId})).length;
+
+    let offerCategories: number[] = new Array(6).fill(0);
+    const agencyOffers = await Offer.find({ agencyId: agencyId });
+
+    agencyOffers.forEach((offer: Offer) => {
+      switch (offer.category) {
+        case OfferCategory.AGRICULTURAL:
+          offerCategories[0]++;
+          break;
+          
+        case OfferCategory.RESIDENTIAL:
+          offerCategories[1]++;
+          break;
+
+        case OfferCategory.COMMERCIAL:
+          offerCategories[2]++;
+          break;
+
+        case OfferCategory.INDUSTRIAL:
+          offerCategories[3]++;
+          break;
+
+        case OfferCategory.RAW_LAND:
+          offerCategories[4]++;
+          break;
+
+        case OfferCategory.SPECIAL_USE:
+          offerCategories[5]++;
+          break;
+
+      }
+    });
+
+    return new AgencyStats(clients.length, sales, agentsIds.length, messages, meetings, offers, offerCategories);
   }
 }
