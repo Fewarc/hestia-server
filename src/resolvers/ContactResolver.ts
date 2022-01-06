@@ -207,6 +207,9 @@ export class ContactResolver {
     @Arg('clientId') clientId: number,
   ) {
     const clientParticipations = await (await EventParticipants.find({ participantId: clientId })).map(participation => ({ id: participation.eventId }));
+
+    if (!clientParticipations.length) return new ClientEvents([], []); 
+
     const clientEvents = await Event.find({ where: [
       ...clientParticipations
     ] }); 
