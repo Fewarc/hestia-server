@@ -25,8 +25,4 @@ export class Notification extends BaseEntity {
   @Field(() => NotificationType, { nullable: true })
   @Column({ type: 'enum', enum: NotificationType, default: NotificationType.NOTIFICATION })
   type: NotificationType
-
-  @Field(() => Boolean)
-  @Column({ type: 'boolean', default: false })
-  seen: boolean
 }
