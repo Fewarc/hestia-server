@@ -142,10 +142,10 @@ export class NotificationResolver {
   async getPendingInvites(
     @Arg('userId') userId: number
   ) {
-    return await Notification.find({ where: [
-      { senderId: userId },
-      { content: Like(`%${Config.CONTACTS_PREFIX}%`) }
-    ] });
+    const invites = await Notification.find({ senderId: userId, content: Like(`%${Config.CONTACTS_PREFIX}%`) });
+    
+    if (!!invites.length) return invites;
+    return [];
   }
 
   @Query(() => [Notification])

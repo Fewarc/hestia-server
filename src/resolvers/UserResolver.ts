@@ -1,5 +1,5 @@
 import { ApolloError } from "apollo-server-errors";
-import { Arg, emitSchemaDefinitionFile, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, emitSchemaDefinitionFile, Mutation, PubSub, PubSubEngine, Query, Resolver } from "type-graphql";
 import { UserRole } from "../enums/UserRole";
 import { User } from "../models/User";
 import jwt, { Secret } from "jsonwebtoken"
@@ -11,8 +11,11 @@ import { Client } from "../models/Client";
 import { AgencyStats } from "../models/AgencyStats";
 import { Message } from "../models/Message";
 import { EventParticipants } from "../models/EventParticipants";
+import { Event } from "../models/Event";
 import { Offer } from "../models/Offers";
+import { Notification } from "../models/Notification";
 import { OfferCategory } from "../enums/OfferCategory";
+import { NotificationType } from "../enums/NotificationType";
 
 @Resolver()
 export class UserResolver {
@@ -24,7 +27,8 @@ export class UserResolver {
   @Query(() => String)
   async logInUser(
     @Arg('login') login: string,
-    @Arg('password') password: string
+    @Arg('password') password: string,
+    @PubSub() pubSub: PubSubEngine
   ) {
     const users = await User.find();
 
@@ -39,6 +43,35 @@ export class UserResolver {
     await user.save();
 
     delete user.password;
+
+    const userParticipations = await EventParticipants.find({ participantId: user.id });
+
+    if (!!userParticipations.length) {
+      const userEvents = Event.find({where: [
+        ...userParticipations.map((participation: EventParticipants) => ({ id: participation.eventId }))
+      ]}); 
+
+      const today: Date = new Date();
+      const ONE_DAY = 24 * 60 * 60 * 1000;
+
+      if (!!userEvents && (await userEvents).some((event: Event) => {
+        const eventDate: Date = new Date(event.eventOccuranceDate);
+        return Math.round(Math.abs((today.getTime() - eventDate.getTime()) / ONE_DAY)) <= 7;
+      })) {
+        let newNotification = Notification.create();
+
+        newNotification.targetId = user.id;
+        newNotification.senderId = 0; // or null
+        newNotification.type = NotificationType.EVENT;
+        newNotification.content = 'You have got upcoming events this week!';
+
+        await newNotification.save();
+
+        const allNotifications = await Notification.find();
+
+        await pubSub.publish(Config.NOTIFICATION_ADDED, allNotifications);
+      }
+    }
 
     return jwt.sign(
       {user},

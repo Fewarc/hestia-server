@@ -40,6 +40,10 @@ export class Offer extends BaseEntity {
   @Column({ type: 'enum', enum: OfferCategory, default: OfferCategory.RESIDENTIAL })
   category: OfferCategory
 
+  @Field(() => OfferType)
+  @Column({ type: 'enum', enum: OfferType, default: OfferType.DISPOSAL })
+  offerType: OfferType
+
   @Field(() => Boolean)
   @Column({ type: 'boolean', default: false })
   furnished: boolean
@@ -63,10 +67,6 @@ export class Offer extends BaseEntity {
   @Field(() => Boolean)
   @Column({ type: 'boolean', nullable: true })
   negotiable: boolean
-
-  @Field(() => OfferType)
-  @Column({ type: 'enum', enum: OfferType, default: OfferType.DISPOSAL })
-  offerType: OfferType
 
   @Field(() => String)
   @Column('varchar', { nullable: true })

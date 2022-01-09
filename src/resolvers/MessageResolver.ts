@@ -1,7 +1,9 @@
 import { PubSubEngine } from "graphql-subscriptions";
 import { Arg, Mutation, Resolver, PubSub, Subscription, Root, Query } from "type-graphql";
 import Config from "../constants/Config";
+import { NotificationType } from "../enums/NotificationType";
 import { Message } from "../models/Message";
+import { Notification } from "../models/Notification";
 
 @Resolver()
 export class MessageResolver {
@@ -31,6 +33,23 @@ export class MessageResolver {
     newMessage.fromId = fromId;
     newMessage.toId = toId;
     newMessage.content = content;
+
+    const notificationExists = await Notification.find({ senderId: fromId, targetId: toId, content: Config.NEW_MESSAGE });
+
+    if (!notificationExists.length) {
+      let messageNotification = Notification.create();
+
+      messageNotification.senderId = fromId;
+      messageNotification.targetId = toId;
+      messageNotification.content = Config.NEW_MESSAGE;
+      messageNotification.type = NotificationType.MESSAGE;
+
+      await messageNotification.save();
+
+      const allNotifications = await Notification.find();
+
+      await pubSub.publish(Config.NOTIFICATION_ADDED, allNotifications);
+    }
 
     await newMessage.save();
 
