@@ -3,3 +3,5 @@ node_modules
 .env.local
 .key
 .cert
+server.cert
+server.key

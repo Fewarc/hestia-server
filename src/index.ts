@@ -24,6 +24,8 @@ import { PostResolver } from "./resolvers/PostResolver";
 
   const connection = createConnection();
   const app = express();
+  var fs = require("fs");
+  var https = require("https");
   
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
   app.use(expressJwt({
@@ -32,7 +34,12 @@ import { PostResolver } from "./resolvers/PostResolver";
     credentialsRequired: false
   }));
 
-  const httpServer = createServer(app);
+  const httpsOptions = {
+    key: fs.readFileSync("server.key"),
+    cert: fs.readFileSync("server.cert"),
+  };
+
+  const httpsServer = https.createServer(httpsOptions, app);
 
   const schema = await buildSchema({ 
     resolvers: [
@@ -67,7 +74,7 @@ import { PostResolver } from "./resolvers/PostResolver";
     execute,
     subscribe
   }, {
-    server: httpServer,
+    server: httpsServer,
     path: server.graphqlPath
   });
 
@@ -75,7 +82,7 @@ import { PostResolver } from "./resolvers/PostResolver";
   server.applyMiddleware({ app });
 
   
-  httpServer.listen(PORT, () =>
-    console.log(`Server is now running on http://localhost:${PORT}/graphql`)
+  httpsServer.listen(PORT, () =>
+    console.log(`Server is now running on https://localhost:${PORT}/graphql`)
   );
 })();
