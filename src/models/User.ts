@@ -41,7 +41,11 @@ export class User extends BaseEntity {
   lastName: string
 
   @Field(() => String, { nullable: true })
-  @Column('varchar', { length: 100, nullable: true })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    transformer: new EncryptionTransformer(MyEncryptionTransformerConfig)
+  })
   address: string
   
   @Field(() => Float, { nullable: true })
