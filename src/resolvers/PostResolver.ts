@@ -37,9 +37,9 @@ export class PostResolver {
 
   @Query(() => BlogPagePosts)
   async getBlogPagePosts(
-    @Arg('userId') userId: number
+    @Arg('userId', { nullable: true }) userId: number
   ) {
-    const userPosts = await Post.find({ ownerId: userId, replyToId: null, postId: null });
+    const userPosts = !!userId ? await Post.find({ ownerId: userId, replyToId: null, postId: null }) : [];
     const allPosts = await Post.find({ replyToId: null, postId: null });
     const mostRecent = allPosts.sort((a: Post, b: Post) => b.postedAt.getTime() - a.postedAt.getTime()).slice(0, 5);
     const mostUpvoted = allPosts.sort((a: Post, b: Post) => b.upvotes - a.upvotes).slice(0, 5);

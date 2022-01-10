@@ -44,7 +44,8 @@ export class User extends BaseEntity {
   @Column({
     type: 'varchar',
     nullable: true,
-    transformer: new EncryptionTransformer(MyEncryptionTransformerConfig)
+    transformer: new EncryptionTransformer(MyEncryptionTransformerConfig),
+    default: ''
   })
   address: string
   

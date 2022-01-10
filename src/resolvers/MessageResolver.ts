@@ -4,6 +4,7 @@ import Config from "../constants/Config";
 import { NotificationType } from "../enums/NotificationType";
 import { Message } from "../models/Message";
 import { Notification } from "../models/Notification";
+import { User } from "../models/User";
 
 @Resolver()
 export class MessageResolver {
@@ -34,14 +35,16 @@ export class MessageResolver {
     newMessage.toId = toId;
     newMessage.content = content;
 
-    const notificationExists = await Notification.find({ senderId: fromId, targetId: toId, content: Config.NEW_MESSAGE });
+    const user = await User.findOne({ id: fromId });
+
+    const notificationExists = await Notification.find({ senderId: fromId, targetId: toId, content: `${Config.NEW_MESSAGE}${user!.login}` });
 
     if (!notificationExists.length) {
       let messageNotification = Notification.create();
 
       messageNotification.senderId = fromId;
       messageNotification.targetId = toId;
-      messageNotification.content = Config.NEW_MESSAGE;
+      messageNotification.content = `${Config.NEW_MESSAGE}${user!.login}`;
       messageNotification.type = NotificationType.MESSAGE;
 
       await messageNotification.save();

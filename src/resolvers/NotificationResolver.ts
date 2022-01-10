@@ -223,12 +223,14 @@ export class NotificationResolver {
 
     const event = await Event.findOne({ id: eventId });
 
+    const user = await User.findOne({ id: userId });
+
     let newNotification = Notification.create();
 
     newNotification.type = NotificationType.NOTIFICATION;
     newNotification.targetId = event!.ownerId;
     newNotification.senderId = userId;
-    newNotification.content = 'User has accepted your event participation invite!'
+    newNotification.content = `User @${user?.login} has accepted your event participation invite!`
 
     await newNotification.save();
 
@@ -264,7 +266,7 @@ export class NotificationResolver {
     newNotification.type = NotificationType.NOTIFICATION;
     newNotification.targetId = agencyId;
     newNotification.senderId = agentId;
-    newNotification.content = 'User has accepted your agency invite!'
+    newNotification.content = `User @${agent?.login} has accepted your agency invite!`
 
     await newNotification.save();
 

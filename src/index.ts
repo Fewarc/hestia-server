@@ -18,6 +18,7 @@ import { ContactResolver } from "./resolvers/ContactResolver";
 import { MessageResolver } from "./resolvers/MessageResolver";
 import { NoteResolver } from "./resolvers/NoteResolver";
 import { PostResolver } from "./resolvers/PostResolver";
+import cors from "cors";
 
 (async function () {
   const PORT = 4000;
@@ -33,6 +34,7 @@ import { PostResolver } from "./resolvers/PostResolver";
     algorithms: ['HS256'],
     credentialsRequired: false
   }));
+  app.use(cors());
 
   const httpsOptions = {
     key: fs.readFileSync("server.key"),

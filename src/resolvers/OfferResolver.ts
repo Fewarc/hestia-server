@@ -123,7 +123,7 @@ export class OfferResolver {
         title: Like(`%${content || ''}%`),
         price: ((!priceLow && !priceHigh) ? MoreThan(0) : (!!priceLow && !!priceHigh) ? Between(priceLow, priceHigh) : ((!!priceLow) ? MoreThanOrEqual(priceLow) : LessThanOrEqual(priceHigh))),
         area: ((!areaLow && !areaHigh) ? MoreThan(0) : (!!areaLow && !!areaHigh) ? Between(areaLow, areaHigh) : ((!!areaLow) ? MoreThanOrEqual(areaLow) : LessThanOrEqual(areaHigh))),
-        numberOfRooms: MoreThanOrEqual(numberOfRooms || 0),
+        // numberOfRooms: MoreThanOrEqual(numberOfRooms || 0),
         address: Like(`%${address || ''}%`)
       }
     ]});

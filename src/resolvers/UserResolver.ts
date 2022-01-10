@@ -171,18 +171,24 @@ export class UserResolver {
   async getAgencies(
     @Arg('searchPhrase') searchPhrase: string
   ) {
-    const agencies = User.find({where: [
+    let agencies = await User.find({where: [
       { 
         role: UserRole.AGENCY,
         firstName: Like(`%${searchPhrase}%`)
       },
-      { 
-        role: UserRole.AGENCY,
-        address: Like(`%${searchPhrase}%`)
-      }
     ]});
 
-    return (await agencies).filter(agency => !!agency.address);
+    agencies = [ 
+      ...agencies, 
+      ...await (await User.find())
+        .filter((agency: User) => 
+          agency.role === UserRole.AGENCY 
+          && !!agency.address 
+          && agency.address.toLocaleLowerCase().includes(searchPhrase.toLocaleLowerCase()) 
+          && !agencies.some(foundAgency => foundAgency.id === agency.id)) 
+    ];
+
+    return agencies;
   }
 
   @Query(() => User)

@@ -19,7 +19,7 @@ export class Notification extends BaseEntity {
   targetId: number
 
   @Field(() => String, { nullable: true })
-  @Column('varchar', { length: 100, nullable: true })
+  @Column('varchar', { length: 200, nullable: true })
   content: string
 
   @Field(() => NotificationType, { nullable: true })
