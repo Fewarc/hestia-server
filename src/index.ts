@@ -83,7 +83,6 @@ import cors from "cors";
   await server.start();
   server.applyMiddleware({ app });
 
-  
   httpsServer.listen(PORT, () =>
     console.log(`Server is now running on https://localhost:${PORT}/graphql`)
   );
